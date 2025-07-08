@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+    <!-- Tree view of cashmind.category model (start) -->
+     <record id="cashmind_category_tree_view" model="ir.ui.view">
+        <field name="name">Cashmind category tree view</field>
+        <field name="model">cashmind.category</field>
+        <field name="arch" type="xml">
+            <list string="Categorías">
+                <field name="name" width="350px"/>
+                <field name="category_type" width="50px"/>
+                <field name="parent_id" width="100px"/>
+                <field name="child_ids" width="50px"/>
+                <field name="active" widget="boolean_toggle" width="10px"/>
+                <field name="description" width="350px"/>
+            </list>
+        </field>
+     </record>
+    <!-- Tree view of cashmind.category model (end) --> 
+
+    <!-- Form view of cashmind.category model (start) -->
+    <record id="cashmind_category_form_view" model="ir.ui.view">
+        <field name="name">Cashmind category form view</field>
+        <field name="model">cashmind.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group colspan="2">
+                        <group>
+                            <separator string="Datos de la categoría"/>
+                            <field name="name" string="Categoría*"/>
+                            <field name="category_type" string="Tipo de categoría*"/>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="description"/>
+                        </group>
+                        <group>
+                            <separator string="Relación con otras categorías"/>
+                            <field name="parent_id" domain="[('category_type', '=', category_type)]"/>
+                            <field name="child_ids" domain="[('category_type', '=', category_type)]" 
+                                    context="{'default_category_type': category_type}">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="category_type"/>
+                                </list>
+                                <form>
+                                    <group>
+                                        <field name="name"/>
+                                        <field name="category_type" readonly="1"/>
+                                        <field name="description"/>
+                                    </group>
+                                </form>
+                            </field>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Ingresos" invisible="category_type != 'income'">
+                            <field name="income_ids">
+                                <list>
+                                    <field name="name" width="130"/>
+                                    <field name="account" width="130"/>
+                                    <field name="amount" width="15"/>
+                                    <field name="currency_id" width="15"/>
+                                    <field name="date" width="20"/>
+                                    <field name="invoice" width="20"/>
+                                    <field name="note" width="150"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Gastos" invisible="category_type != 'expense'">
+                            <field name="expense_ids">
+                                <list>
+                                    <field name="name" width="130"/>
+                                    <field name="account" width="130"/>
+                                    <field name="amount" width="15"/>
+                                    <field name="currency_id" width="15"/>
+                                    <field name="date" width="20"/>
+                                    <field name="invoice" width="20"/>
+                                    <field name="note" width="150"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Ajuste negativo (-)" invisible="category_type != 'NA'">
+                            <field name="expense_ids">
+                                <list>
+                                    <field name="name" width="130"/>
+                                    <field name="account" width="130"/>
+                                    <field name="amount" width="15"/>
+                                    <field name="currency_id" width="15"/>
+                                    <field name="date" width="20"/>
+                                    <field name="invoice" width="20"/>
+                                    <field name="note" width="150"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Ajuste positivo (+)" invisible="category_type != 'NA'">
+                            <field name="income_ids">
+                                <list>
+                                    <field name="name" width="130"/>
+                                    <field name="account" width="130"/>
+                                    <field name="amount" width="15"/>
+                                    <field name="currency_id" width="15"/>
+                                    <field name="date" width="20"/>
+                                    <field name="invoice" width="20"/>
+                                    <field name="note" width="150"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Presupuestos" invisible="category_type == 'NA'">
+                            <field name="budget_ids">
+                                <list>
+                                    <field name="name" width="130"/>
+                                    <field name="account" width="130"/>
+                                    <field name="amount" width="15"/>
+                                    <field name="expended" width="15"/>
+                                    <field name="balance" width="15"/>
+                                    <field name="currency_id" width="15"/>
+                                    <field name="start_date" string="Inicio" width="20"/>
+                                    <field name="end_date" string="Fin" width="20"/>
+                                    <field name="note" width="150"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!-- Form view of cashmind.category model (end) -->
+
+    <!-- Search view of cashmind.category model (start) -->
+    <record id="cashmind_category_search_view" model="ir.ui.view">
+        <field name="name">"Cashmind category search view</field>
+        <field name="model">cashmind.category</field>
+        <field name="arch" type="xml">
+            <search string="Buscar categorías">
+                <field name="name" string="por nombre"/>
+                <field name="parent_id" string="por categoría superior"/>
+                <field name="child_ids" string="por categoría inferior"/>
+                <field name="description" string="en la descripción"/>
+                <filter name="active_categories" string="Activas" domain="[('active', '=', True)]"/>
+                <filter name="inactive_categories" string="Archivadas" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter name="expense_categories" string="Gastos" domain="[('category_type', '=', 'expense')]"/>
+                <filter name="income_categories" string="Ingresos" domain="[('category_type', '=', 'income')]"/>
+                <separator/>
+                <filter name="used" string="Utilizadas" domain="[('is_used', '=', True)]"/>
+                <filter name="not_used" string="No utilizadas" domain="[('is_used', '=', False)]"/>
+                <separator/>
+                <group expand="1" string="Agrupar por">
+                    <filter name="group_by_used" string="Utilizadas" context="{'group_by': 'is_used'}"/>
+                    <separator/>
+                    <filter name="group_by_type" string="Tipo de categoría" context="{'group_by': 'category_type'}"/>
+                
+                </group>
+            </search>
+        </field>
+    </record>
+    <!-- Search view of cashmind.category model (start) -->
+
+    <!-- Action of cashmind.category model (start) -->
+     <record id="cashmind_category_action" model="ir.actions.act_window">
+        <field name="name">CATEGORÍAS</field>
+        <field name="res_model">cashmind.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{
+            "search_default_used": 1    
+        }</field>
+    </record>
+     <!-- Action of cashmind.category model (end) -->
+</odoo>

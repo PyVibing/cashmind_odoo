@@ -1,0 +1,23 @@
+{
+    "name": "CashMind: Finanzas Personales",
+    "version": "1.0",
+    "category": "Personal Finance",
+    "summary": "Gestión de cuentas y gastos personales",
+    "author": "Jeffry Hernández",
+    "depends": ["base", "account"],
+    "data": [
+        "security/ir.model.access.csv",
+        "views/category_views.xml",
+        "views/account_views.xml",
+        "views/saving_goal_views.xml",
+        "views/budget_views.xml",
+        "views/expense_views.xml",
+        "views/income_views.xml",
+        "views/transfer_views.xml",
+        "views/save_views.xml",
+        "views/menu_views.xml",
+    ],
+    "post_init_hook": "activate_currencies",
+    "installable": True,
+    "application": True,
+}

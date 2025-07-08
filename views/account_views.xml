@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+    <!-- Tree view of cashmind.account model (start) -->
+    <record id="cashmind_account_tree_view" model="ir.ui.view">
+        <field name="name">Cashmind account tree view</field>
+        <field name="model">cashmind.account</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" width="300px"/>
+                <field name="account_type" width="150px"/>
+                <field name="balance" width="150px"/>
+                <field name="currency_id" width="60px"/>
+                <field name="active" widget="boolean_toggle" width="30px"/>
+                <field name="note" width="300px"/>
+            </list>
+        </field>
+    </record>
+    <!-- Tree view of cashmind.account model (end) -->
+
+    <!-- Form view of cashmind.account model (start) -->
+    <record id="cashmind_account_form_view" model="ir.ui.view">
+        <field name="name">Cashmind account form view</field>
+        <field name="model">cashmind.account</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <separator string="Datos de la cuenta"/>
+                        <field name="name" string="Nombre de la cuenta*"/>
+                        <field name="account_type" options="{'no_create': True}" string="Tipo de cuenta*"/>
+                        <field name="currency_id" options="{'no_create': True}" string="Moneda*"/>
+                        <field name="balance" string="Balance*"/>
+                        <separator string="Otros datos"/>
+                        <field name="active" widget="boolean_toggle"/>
+                        <field name="note"/>
+                    </group>
+                    <notebook>
+                        <page string="Ingresos">
+                            <field name="income_ids">
+                                <list>
+                                    <field name="name" width="70"/>
+                                    <field name="amount" width="30"/>
+                                    <field name="currency_id" width="20"/>
+                                    <field name="category" width="50"/>
+                                    <field name="date" width="50"/>
+                                    <field name="invoice" width="30"/>
+                                    <field name="note" width="100"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Gastos">
+                            <field name="expense_ids">
+                                <list>
+                                    <field name="name" width="70"/>
+                                    <field name="amount" width="30"/>
+                                    <field name="currency_id" width="20"/>
+                                    <field name="category" width="50"/>
+                                    <field name="date" width="50"/>
+                                    <field name="invoice" width="30"/>
+                                    <field name="note" width="100"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Presupuestos">
+                            <field name="budget_ids">
+                                <list>
+                                    <field name="name" width="70"/>
+                                    <field name="amount" width="30"/>
+                                    <field name="currency_id" width="20"/>
+                                    <field name="category" width="50"/>
+                                    <field name="start_date" width="50"/>
+                                    <field name="end_date" width="50"/>
+                                    <field name="note" width="100"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Transferencias">
+                            <notebook>
+                                <page string="Enviadas">
+                                    <field name="source_transfer_ids">
+                                        <list>
+                                            <field name="name" width="70"/>
+                                            <field name="amount" width="30"/>
+                                            <field name="source_currency_id" width="20"/>
+                                            <field name="destination_account" width="50"/>
+                                            <field name="transfer_date" width="50"/>
+                                            <field name="note" width="100"/>
+                                        </list>
+                                    </field>
+                                </page>
+                                <page string="Recibidas">
+                                    <field name="destination_transfer_ids">
+                                        <list>
+                                            <field name="name" width="70"/>
+                                            <field name="amount" width="30"/>
+                                            <field name="source_currency_id" width="20"/>
+                                            <field name="source_account" width="50"/>
+                                            <field name="transfer_date" width="50"/>
+                                            <field name="note" width="100"/>
+                                        </list>
+                                    </field>
+                                </page>
+                            </notebook>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!-- Form view of cashmind.account model (end) -->
+
+    <!-- Search view of cashmind.account model (start) -->
+     <record id="cashmind_account_search_view" model="ir.ui.view">
+        <field name="name">Cashmind account search view</field>
+        <field name="model">cashmind.account</field>
+        <field name="arch" type="xml">
+            <search string="Buscar cuentas">
+                <field name="name" string="por nombre"/>
+                <field name="account_type" string="por tipo de cuenta"/>
+                <field name="note" string="en las notas"/>
+                <filter name="active_accounts" string="Activas" domain="[('active', '=', True)]"/>
+                <filter name="inactive_accounts" string="Archivadas" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter name="full_accounts" string="Con saldo" domain="[('balance', '>', 0)]"/>
+                <filter name="empty_accounts" string="Sin saldo" domain="[('balance', '=', 0)]"/>
+                <separator/>
+                <filter name="bank_account" string="Cuenta bancaria" domain="[('account_type', '=', 'bank')]"/>
+                <filter name="credit_card" string="Tarjeta de crédito" domain="[('account_type', '=', 'credit')]"/>
+                <filter name="debit_card" string="Tarjeta de débito" domain="[('account_type', '=', 'debit')]"/>
+                <filter name="cash_account" string="Efectivo" domain="[('account_type', '=', 'cash')]"/>
+                <filter name="other_account" string="Otros" domain="[('account_type', '=', 'other')]"/>
+                <group expand="1" string="Agrupar por">
+                    <filter name="group_by_account" string="Tipo de cuenta" context="{'group_by': 'account_type'}"/>
+                    <separator/>
+                    <filter name="group_by_currency" string="Tipo de moneda" context="{'group_by': 'currency_id'}"/>
+                </group>
+            </search>
+        </field>
+     </record>
+    <!-- Search view of cashmind.account model (end) -->
+     
+
+    <!-- Action of cashmind.account model (start) -->
+     <record id="cashmind_account_action" model="ir.actions.act_window">
+        <field name="name">CUENTAS</field>
+        <field name="res_model">cashmind.account</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{
+            "search_default_full_accounts": 1
+        }</field>
+    </record>
+     <!-- Action of cashmind.account model (end) -->
+</odoo>

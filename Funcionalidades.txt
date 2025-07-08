@@ -1,0 +1,39 @@
+Características y funcionalidades de Cashmind:
+
+- Cuenta con tres menús principales:
+
+	1 - Movimientos:
+	  - Ingresos a cuenta
+	  - Gastos desde cuenta (gasto imprevisto) o presupuesto (previamente creado)
+	  - Transferencias de saldo entre cuentas
+	  - Ahorrar (para transferir dinero a Metas de Ahorro, previamente creadas)
+	
+	2 - Planificación:
+	  - Presupuestos (se crean los presupuestos, que toman dinero de una de las cuentas)
+	  - Metas de ahorro (se crean las metas de ahorro, a las que se les puede transferir desde AHORRAR)
+
+	3 - Configuración:
+	  - Cuentas (se crean las cuentas)
+	  - Categorías (se crean las categorías)
+
+- Principales funcionalidades:
+	1 - Cuentas: una vez creadas las cuentas (con balance 0 o con balance mayor que 0), no se puede cambiar manualmente el saldo. Esto debe hacerse a través de ingresos y saldos.
+	2 - Categorías: 
+		- Existen categorías de Ingresos y Gastos, cada una con posibles categorías superiores o subcategorías.
+	 	- Es posible crear una única categoría especial, (AJUSTE DE SALDO) y tipo de categoría AJUSTE DE SALDO. Es utilizada para que movimientos de Ingresos y Gastos no computen en las estadísticas de ingresos y gastos.
+	3 - Al crear un presupuesto, se define un monto inicial. Si luego se elimina o modifica, el saldo de la cuenta de donde toma el dinero es recalculado.
+	4 - Al crear una meta de ahorro, se define un objetivo inicial. Al completar o sobrepasar el objetivo, se envía notificación popup.
+	5 - Al ingresar dinero, se define un monto. Si luego se elimina o se modifica, el saldo de la cuenta a donde ingresó el dinero es recalculado.
+	6 - Al gastar dinero, se puede tomar de un presupuesto o de una cuenta (como gasto imprevisto). Si luego se elimina o se modifica, el saldo de la cuenta a donde ingresó el dinero es recalculado.
+	7 - Al transferir dinero, se define un monto. Si luego se elimina o se modifica, el saldo de la cuenta de donde tomó y a donde ingresó el dinero es recalculado.
+	8 - Al crear un movimiento de ahorro, se define un monto. Si luego se elimina o se modifica, el saldo de la cuenta de ahorro a donde ingresó el dinero o de la cuenta de donde lo tomó es recalculado.
+
+- Principales restricciones: (aplican a creación y modificaciones posteriores)
+	1 - No se puede transferir entre cuentas con distintos tipos de moneda.
+	2 - Las fechas de los movimientos de dinero pueden ser pasadas o presentes, pero no futuras.
+	3 - Al modificar el monto de un movimiento (ingreso, gasto, etc.), si el resultado del balance de la cuenta asociada es negativo, no se efectuará la modificación.
+	4 - No es posible eliminar una cuenta, presupuesto o meta de ahorro mientras haya un movimiento de dinero asociado a estos,
+	5 - No es posible eliminar una categoría mientras al menos una subcategoría asociada.
+
+
+

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+    <!-- Tree view of cashmind.save model (start) -->
+    <record id="cashmind_save_tree_view" model="ir.ui.view">
+        <field name="name">Cashmind save tree view</field>
+        <field name="model">cashmind.save</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" width="300px"/>
+                <field name="source_account" width="300px"/>
+                <field name="amount" width="60px"/>
+                <field name="source_currency_id" width="60px"/>
+                <field name="destination_savinggoal_account" width="300px"/>
+                <field name="date" width="100px"/>
+                <field name="active" widget="boolean_toggle" width="30px"/>
+                <field name="note" width="300px"/>
+            </list>
+        </field>
+    </record>
+    <!-- Tree view of cashmind.save model (end) -->
+    
+    <!-- Form view of cashmind.save model (start) -->
+    <record id="cashmind_save_form_view" model="ir.ui.view">
+        <field name="name">Cashmind save form view</field>
+        <field name="model">cashmind.save</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <separator string="Origen"/>
+                        <field name="name" string="Nombre*"/>
+                        <field name="source_account" string="Cuenta de origen*" options="{'no_create': True}"/>
+                        <field name="available" options="{'no_create': True}"/>
+                        <field name="amount" string="Transferir*"/>
+                        <field name="source_currency_id" invisible="1"/>
+                        <separator string="Destino"/>
+                        <field name="destination_savinggoal_account" string="Cuenta de ahorro*" options="{'no_create': True}"/>
+                        <field name="available_destination" options="{'no_create': True}"/>
+                        <field name="goal_savinggoal_account" readonly="1"/>
+                        <field name="destination_currency_id" invisible="1"/>
+                        <separator string="Otros datos"/>
+                        <field name="date" string="Fecha*"/>
+                        <field name="active" widget="boolean_toggle"/>
+                        <field name="note"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!-- Form view of cashmind.save model (end) -->
+
+    <!-- Search view of cashmind.save model (start) -->
+    <record id="cashmind_save_search_view" model="ir.ui.view">
+        <field name="name">Cashmind save search view</field>
+        <field name="model">cashmind.save</field>
+        <field name="arch" type="xml">
+            <search string="Buscar movimientos de ahorro">
+                <field name="name" string="por nombre"/>
+                <field name="source_account" string="por cuenta de origen"/>
+                <field name="destination_savinggoal_account" string="por cuenta de ahorro"/>
+                <field name="amount" string="por cantidad"/>
+                <field name="date" string="por fecha"/>
+                <field name="note" string="en las notas"/>
+                <filter name="active_save" string="Activos" domain="[('active', '=', True)]"/>
+                <filter name="inactive_save" string="Archivados" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter name="up_to_500" string="Hasta 500.00" domain="[('amount', '&lt;=', 500)]"/>
+                <filter name="more_than_500" string="Más de 500.00" domain="[('amount', '>', 500)]"/>
+                <group expand="1" string="Agrupar por">
+                    <filter name="group_by_source_account" string="Cuenta de origen" context="{'group_by': 'source_account'}"/>
+                    <filter name="group_by_savinggoal_account" string="Cuenta de ahorro" context="{'group_by': 'destination_savinggoal_account'}"/>
+                    <separator/>
+                    <filter name="group_by_date" string="Fecha" context="{'group_by': 'date'}"/>
+                    <separator/>
+                    <filter name="group_by_currency" string="Tipo de moneda" context="{'group_by': 'source_currency_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <!-- Search view of cashmind.save model (end) -->
+    
+    <!-- Action of cashmind.save model (start) -->
+    <record id="cashmind_save_action" model="ir.actions.act_window">
+        <field name="name">AHORRAR</field>
+        <field name="res_model">cashmind.save</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <!-- Action of cashmind.save model (end) -->
+</odoo>

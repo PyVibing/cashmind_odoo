@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+    <!-- Tree view of cashmind.expense model (start) -->
+    <record id="cashmind_expense_tree_view" model="ir.ui.view">
+        <field name="name">Cashmind expense tree view</field>
+        <field name="model">cashmind.expense</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" width="300px"/>
+                <field name="account" width="150px"/>
+                <field name="budget" width="150"/>
+                <field name="category" width="100px"/>
+                <field name="amount" width="60px"/>
+                <field name="currency_id" width="60px"/>
+                <field name="date" width="100px"/>
+                <field name="invoice" width="50px"/>
+                <field name="active" widget="boolean_toggle" width="50px"/>
+                <field name="note" width="250px"/>
+            </list>
+        </field>
+    </record>
+    <!-- Tree view of cashmind.expense model (end) -->
+
+    <!-- Form view of cashmind.expense model (start) -->
+    <record id="cashmind_expense_form_view" model="ir.ui.view">
+        <field name="name">Cashmind expense form view</field>
+        <field name="model">cashmind.expense</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group colspan="2"> 
+                            <separator string="Datos del gasto"/>
+                            <field name="name" string="Nombre*"/> 
+                            <field name="amount" string="Cantidad*"/>
+                            <field name="currency_id"/>
+                            <field name="category" options="{'no_create': True}" string="Categoría*"/>
+                            <field name="date" string="Fecha*"/>
+                            <separator string="Cuenta de origen"/>
+                        </group>
+                        <group colspan="2">
+                            <group colspan="1">
+                                <field name="budget" string="Presupuesto*" options="{'no_create': True}"/>
+                                <field name="account" string="Cuenta de origen*" options="{'no_create': True}"/>
+                            </group>
+                            <group colspan="1">
+                                <field name="budget_available" options="{'no_create': True}"/>
+                                <field name="available" options="{'no_create': True}"/>
+                            </group>
+                        </group>
+                        <group colspan="2">
+                            <separator string="Otros datos"/>
+                            <field name="active"/>
+                            <field name="note" widget="char"/>
+                            <field name="invoice" widget="pdf_viewer"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!-- Form view of cashmind.expense model (end) -->
+    
+    <!-- Search view of cashmind.expense model (start) -->
+    <record id="cashmind_expense_search_view" model="ir.ui.view">
+        <field name="name">Cashmind expense search view</field>
+        <field name="model">cashmind.expense</field>
+        <field name="arch" type="xml">
+            <search string="Buscar gastos">
+                <field name="name" string="por nombre"/>
+                <field name="account" string="por cuenta de origen"/>
+                <field name="budget" string="por presupuesto"/>
+                <field name="category" string="por categoría"/>
+                <field name="amount" string="por cantidad"/>
+                <field name="date" string="por fecha"/>
+                <field name="note" string="en las notas"/>
+                <filter name="active_expenses" string="Activos" domain="[('active', '=', True)]"/>
+                <filter name="inactive_expenses" string="Archivados" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter name="up_to_500" string="Hasta 500.00" domain="[('amount', '&lt;=', 500)]"/>
+                <filter name="over_500" string="Más de 500.00" domain="[('amount', '>', 500)]"/>
+                <separator/>
+                <filter name="with_invoice" string="Con factura" domain="[('has_invoice', '=', True)]"/>
+                <filter name="without_invoice" string="Sin factura" domain="[('has_invoice', '=', False)]"/>
+                <group expand="1" string="Agrupar por">
+                    <filter name="group_by_account" string="Cuenta de origen" context="{'group_by': 'account'}"/>
+                    <filter name="group_by_budget" string="Presupuesto" context="{'group_by': 'budget'}"/>
+                    <separator/>
+                    <filter name="group_by_category" string="Categoría" context="{'group_by': 'category'}"/>
+                    <separator/>
+                    <filter name="group_by_date" string="Fecha" context="{'group_by': 'date'}"/>
+                    <separator/>
+                    <filter name="group_by_currency" string="Tipo de moneda" context="{'group_by': 'currency_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <!-- Search view of cashmind.expense model (end) -->
+
+    <!-- Action of cashmind.expense model (start) -->
+    <record id="cashmind_expense_action" model="ir.actions.act_window">
+        <field name="name">GASTOS</field>
+        <field name="res_model">cashmind.expense</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <!-- Action of cashmind.expense model (end) -->
+</odoo>
