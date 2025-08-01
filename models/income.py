@@ -3,9 +3,11 @@ from odoo.exceptions import ValidationError
 from ..utils import notification, update_balance, clean_input
 from datetime import datetime
 
-class Income(models.Model):
+class Income(models.Model): 
     _name = "cashmind.income"
     
+    user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", unique=True,
+                              default=lambda self: self.env.user)
     name = fields.Char(string="Nombre", required=True)
     account = fields.Many2one("cashmind.account", string="Cuenta de destino", required=True)
     available = fields.Monetary(string="Balance", compute="_compute_availability", currency_field="currency_id", 
@@ -73,6 +75,11 @@ class Income(models.Model):
         notification(income, "Saldo actualizado",
                     "Se actualizó correctamente el saldo de la cuenta asociada a este ingreso.",
                     "success")
+        
+        # Recalculate dashboard stats
+        user_id = income.user_id.id
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard()
         
         return income
     
@@ -144,14 +151,20 @@ class Income(models.Model):
                     vals["name"] = new_name.capitalize()
             if new_note:
                 vals["note"] = new_note
+        
+        income = super().write(vals)
 
-        return super().write(vals)
+        # Recalculate dashboard stats
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', rec.user_id.id)])
+        dashboards.recalculate_dashboard()
+
+        return income 
 
     def unlink(self):
         for rec in self:
             current_amount_income = rec.amount
             current_account_record = rec.account
-
+            
             # Update the amount in the account
             update_balance(current_account_record, current_amount_income * -1)
         
@@ -163,7 +176,13 @@ class Income(models.Model):
             notification(self, "Ingresos eliminados",
                         "Se actualizó correctamente el saldo de las cuentas asociadas a estos ingresos.",
                         "success")
-            
-        return super().unlink() 
+        
+        user_id = self.user_id.id
+        income = super().unlink() 
 
+        # Recalculate dashboard stats
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard()
+
+        return income
     

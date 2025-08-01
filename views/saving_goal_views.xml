@@ -61,6 +61,50 @@
     </record>
     <!-- Form view of cashmind.savinggoal model (end) -->
     
+    <!-- Kanban view of cashmind.savinggoal model (start) -->
+    <record id="cashmind_savinggoal_kanban_view" model="ir.ui.view">
+        <field name="name">Cashmind savinggoal kanban view</field>
+        <field name="model">cashmind.savinggoal</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="amount"/>
+                <field name="currency_id"/>
+                <field name="balance"/>
+                <field name="start_date"/>
+                <field name="limit_date"/>
+                <field name="reached_percent"/>
+
+                <t t-name="card">
+                    <div class="o_kanban_global_click">
+                        <header class="d-flex justify-content-between mb-2">
+                            <strong><t t-esc="record.name.value"/></strong>
+                            <span class="text-muted"><t t-esc="record.start_date.value"/></span>
+                        </header>
+                        <div class="d-flex mb-2">
+                            <field name="amount" class="badge text-bg-primary fs-4"/>
+                        </div>
+                        <footer class="d-flex flex-column text-muted small">
+                            <div class="d-flex">
+                                <span>💰</span>
+                                <span class="text-success ms-1"><field name="balance"/></span>
+                            </div>
+                            <div class="d-flex">
+                                <span>📈</span>
+                                <span class="ms-1"><field name="reached_percent"/></span><span class="ms-1">%</span>
+                            </div>
+                            <div class="d-flex">
+                                <span>🗓️</span>
+                                <span class="text-danger ms-1"><field name="limit_date"/></span>
+                            </div>                                
+                        </footer>
+                    </div>
+                </t>
+            </kanban>
+        </field>
+    </record>
+    <!-- Kanban view of cashmind.savinggoal model (end) -->
+    
     <!-- Search view of cashmind.savinggoal model (start) -->
     <record id="cashmind_savinggoal_search_view" model="ir.ui.view">
         <field name="name">Cashmind savinggoal search view</field>
@@ -98,7 +142,7 @@
     <record id="cashmind_savinggoal_action" model="ir.actions.act_window">
         <field name="name">METAS DE AHORRO</field>
         <field name="res_model">cashmind.savinggoal</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="context">{
             "search_default_incompleted": True    
         }</field>

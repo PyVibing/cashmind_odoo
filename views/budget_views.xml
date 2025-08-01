@@ -67,6 +67,55 @@
         </field>
     </record>
     <!-- Form view of cashmind.budget model (end) -->
+    
+    <!-- Kanban view of cashmind.budget model (start) -->
+    <record id="cashmind_budget_kanban_view" model="ir.ui.view">
+        <field name="name">Cashmind budget kanban view</field>
+        <field name="model">cashmind.budget</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="amount"/>
+                <field name="expended"/>
+                <field name="balance"/>
+                <field name="currency_id"/>
+                <field name="category"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+
+                <t t-name="card">
+                    <div class="o_kanban_global_click">
+                        <header class="d-flex justify-content-between mb-2">
+                            <strong><t t-esc="record.name.value"/></strong>
+                            <span class="text-muted"><t t-esc="record.start_date.value"/></span>
+                        </header>
+                        <div class="d-flex flex-column mb-2">
+                            <div class="d-flex">
+                                <span class="badge text-bg-success fs-4"><field name="balance"/></span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="text-muted">Reservado:</span>
+                                <span class="text-primary ms-1 me-3"><field name="amount"/></span>                                
+                                <span class="text-muted">Gastado:</span>
+                                <span class="text-danger ms-1"><field name="expended"/></span>
+                            </div>
+                        </div>
+                        <footer class="d-flex flex-column text-muted small">
+                            <div class="d-flex">
+                                <span>🏷️</span>
+                                <field name="category"/>
+                            </div>
+                            <div class="d-flex text-danger">
+                                <span>🗓️</span>
+                                <field name="end_date"/>
+                            </div>
+                        </footer>
+                    </div>
+                </t>
+            </kanban>
+        </field>
+    </record>
+    <!-- Kanban view of cashmind.budget model (end) -->
 
     <!-- Search view of cashmind.budget model (start) -->
     <record id="cashmind_budget_search_view" model="ir.ui.view">
@@ -106,7 +155,7 @@
     <record id="cashmind_budget_action" model="ir.actions.act_window">
         <field name="name">PRESUPUESTOS</field>
         <field name="res_model">cashmind.budget</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="context">{
             "search_default_with_availability": 1
         }</field>

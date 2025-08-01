@@ -50,6 +50,45 @@
     </record>
     <!-- Form view of cashmind.save model (end) -->
 
+    <!-- Kanban view of cashmind.save model (start) -->
+    <record id="cashmind_save_kanban_view" model="ir.ui.view">
+        <field name="name">Cashmind save kanban view</field>
+        <field name="model">cashmind.save</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="amount"/>
+                <field name="date"/>
+                <field name="source_account"/>
+                <field name="source_currency_id"/>
+                <field name="destination_savinggoal_account"/>
+                
+                <t t-name="card">
+                    <div class="o_kanban_global_click">
+                        <header class="d-flex justify-content-between mb-2">
+                            <strong><t t-esc="record.name.value"/></strong>
+                            <span class="text-muted"><t t-esc="record.date.value"/></span>
+                        </header>
+                        <div class="o_kanban_card_content mb-2 badge text-bg-primary fs-4">
+                            <field name="amount"/>
+                        </div>
+                        <footer class="d-flex flex-column text-muted small">
+                            <div class="d-flex">
+                                <span>➡️</span>
+                                <field name="source_account"/>
+                            </div>
+                            <div class="d-flex">
+                                <span>⬅️</span>
+                                <field name="destination_savinggoal_account"/>
+                            </div>
+                        </footer>
+                    </div>
+                </t>
+            </kanban>
+        </field>
+    </record>
+    <!-- Kanban view of cashmind.save model (end) -->
+
     <!-- Search view of cashmind.save model (start) -->
     <record id="cashmind_save_search_view" model="ir.ui.view">
         <field name="name">Cashmind save search view</field>
@@ -84,7 +123,7 @@
     <record id="cashmind_save_action" model="ir.actions.act_window">
         <field name="name">AHORRAR</field>
         <field name="res_model">cashmind.save</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
     </record>
     <!-- Action of cashmind.save model (end) -->
 </odoo>

@@ -6,6 +6,8 @@ from datetime import datetime
 class SavingGoal(models.Model):
     _name = "cashmind.savinggoal" 
 
+    user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", unique=True,
+                              default=lambda self: self.env.user)
     name = fields.Char(string="Nombre", required=True)
     currency_id = fields.Many2one("res.currency", string="Moneda", required=True, 
                                   default=lambda self: self._default_currency())
@@ -89,6 +91,11 @@ class SavingGoal(models.Model):
                     "La meta de ahorro ha sido creada correctamente.",
                     "success")
         
+        # # Recalculate dashboard stats
+        # user_id = savinggoal.user_id.id
+        # dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        # dashboards.recalculate_dashboard() 
+
         return savinggoal
     
     def write(self, vals):
@@ -150,7 +157,11 @@ class SavingGoal(models.Model):
                 if not current_goal_status:
                     notification(rec, "Meta de ahorro completada", "FELICIDADES. Ha alcanzado el objetivo de su meta de ahorro.", "success")
 
-            return saving_goal
+        # # Recalculate dashboard stats
+        # dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', rec.user_id.id)])
+        # dashboards.recalculate_dashboard()
+        
+        return saving_goal
 
     def unlink(self):
         for rec in self:
@@ -167,5 +178,12 @@ class SavingGoal(models.Model):
                 notification(self, "Cuentas de ahorros eliminadas",
                             "Se eliminaron correctamente las cuentas de ahorro seleccionadas.",
                             "success")
-            
-        return super().unlink()
+        
+        # user_id = self.user_id.id
+        savinggoal = super().unlink()
+
+        # # Recalculate dashboard stats
+        # dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        # dashboards.recalculate_dashboard()
+
+        return savinggoal

@@ -5,9 +5,10 @@ from ..utils import notification, update_balance, clean_input
 
 class Expense(models.Model):
     _name = "cashmind.expense"
-
-    name = fields.Char(string="Nombre", required=True)
     
+    user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", unique=True,
+                              default=lambda self: self.env.user)
+    name = fields.Char(string="Nombre", required=True)    
     budget = fields.Many2one("cashmind.budget", string="Presupuesto", ondelete="restrict")
     budget_available = fields.Monetary(string="Disponible", compute="_compute_budget_availability", currency_field="currency_id", 
                                 readonly=True)
@@ -35,18 +36,20 @@ class Expense(models.Model):
         for rec in self:
             if rec.account:
                 rec.available = rec.account.balance
-                rec.budget = False
-                rec.budget_available = False
+                if rec.budget:
+                    rec.budget = False
+                    rec.budget_available = False
             else:
                 rec.available = 0.0
-    
+
     @api.onchange("budget")
     def _compute_budget_availability(self):
         for rec in self:
             if rec.budget:
                 rec.budget_available = rec.budget.balance
-                rec.account = False
-                rec.available = False
+                if rec.account:
+                    rec.account = False
+                    rec.available = False
             else:
                 rec.budget_available = 0.0
   
@@ -121,6 +124,11 @@ class Expense(models.Model):
             notification(expense, "Saldo actualizado",
                     "Se actualizó correctamente el saldo de la cuenta asociada a este gasto.",
                     "success") 
+            
+        # Recalculate dashboard stats
+        user_id = expense.user_id.id
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard()
         
         return expense 
     
@@ -171,8 +179,7 @@ class Expense(models.Model):
             else:
                 new_account_expense_id = None
                 new_account_record = None
-                            
-            
+                     
             # Check amount is greater than 0
             if new_amount_expense is not None and new_amount_expense <= 0:
                 raise ValidationError("La cantidad a gastar debe ser mayor que 0.")
@@ -188,7 +195,6 @@ class Expense(models.Model):
                     raise ValidationError("No hay saldo suficiente para realizar esta operación.")
                 elif not new_amount_expense and current_amount_expense > new_available:
                     raise ValidationError("No hay saldo suficiente para realizar esta operación.")
-            
             
             # If only modifying the quantity (amount), not the account name
             if not new_account_expense_id and new_amount_expense:
@@ -238,18 +244,20 @@ class Expense(models.Model):
                 amount_changed = False if not new_amount_expense else new_amount_expense != current_amount_expense
                 account_changed = False if not new_account_expense_id else new_account_expense_id != current_account_expense_id
                 if not amount_changed or not account_changed:
-                    # Avoid multi triggering write()
-                    if len([x for x in vals.keys()]) == 1 and [x for x in vals.values()][0] == False:
-                        continue
-                    else:
-                        notification(rec, "Datos actualizados", "Se actualizaron correctamente los datos del gasto.", "success")
+                    notification(rec, "Datos actualizados", "Se actualizaron correctamente los datos del gasto.", "success")
 
             if new_name:
                 vals["name"] = new_name.capitalize()
             if new_note:
                 vals["note"] = new_note
         
-        return super().write(vals)
+        expense = super().write(vals)
+        
+        # Recalculate dashboard stats
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', rec.user_id.id)])
+        dashboards.recalculate_dashboard()
+        
+        return expense
     
     def unlink(self): 
         for rec in self:
@@ -270,5 +278,12 @@ class Expense(models.Model):
             notification(self, "Gastos eliminados",
                         "Se actualizó correctamente el saldo de la cuenta asociada a cada gasto.",
                         "success")
-            
-        return super().unlink()
+        
+        user_id = self.user_id.id
+        expense = super().unlink()
+
+        # Recalculate dashboard stats
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard()
+        
+        return expense

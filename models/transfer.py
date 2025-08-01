@@ -6,6 +6,8 @@ from ..utils import notification, update_balance, clean_input
 class Transfer(models.Model):
     _name = "cashmind.transfer"
 
+    user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", unique=True,
+                              default=lambda self: self.env.user)
     name = fields.Char(string="Nombre", required=True)
     source_account = fields.Many2one("cashmind.account", string="Cuenta de origen", required=True)
     source_currency_id = fields.Many2one("res.currency", string="Moneda", readonly=True, 
@@ -113,6 +115,11 @@ class Transfer(models.Model):
         notification(transfer, "Saldo actualizado", 
                      "Se actualizó correctamente el saldo de las cuentas asociadas a esta transferencia.",
                     "success")
+        
+        # Recalculate dashboard stats
+        user_id = transfer.user_id.id
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard()
 
         return transfer
     
@@ -245,7 +252,13 @@ class Transfer(models.Model):
             if new_note:
                 vals["note"] = new_note
         
-        return super().write(vals)
+        transfer = super().write(vals)
+
+        # Recalculate dashboard stats
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', rec.user_id.id)])
+        dashboards.recalculate_dashboard()
+        
+        return transfer
 
     def unlink(self):
         for rec in self:
@@ -258,7 +271,7 @@ class Transfer(models.Model):
 
             # Update the amount in the destination_account
             update_balance(destination_account_record, current_amount * -1)
-            
+        
         if len(self) < 2:
             notification(self, "Transferencia eliminada",
                         "Se actualizó correctamente el saldo de las cuentas asociadas a esta transferencia.",
@@ -268,4 +281,11 @@ class Transfer(models.Model):
                         "Se actualizó correctamente el saldo de las cuentas asociadas a estas transferencias.",
                         "success")
         
-        return super().unlink()
+        user_id = self.user_id.id
+        transfer = super().unlink()
+
+        # Recalculate dashboard stats
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard()
+
+        return transfer

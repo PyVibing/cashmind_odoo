@@ -6,6 +6,8 @@ from ..utils import update_balance, notification, clean_input
 class Budget(models.Model):
     _name = "cashmind.budget"
 
+    user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", unique=True,
+                              default=lambda self: self.env.user)
     name = fields.Char(string="Nombre", required=True)
     
     account = fields.Many2one("cashmind.account", string="Cuenta asociada", required=True)
@@ -90,17 +92,21 @@ class Budget(models.Model):
         if note:
             vals["note"] = note
 
-        self = super().create(vals)
+        budget = super().create(vals)
         
-
-        for rec in self:
+        for rec in budget:
             # Substract from the account
             update_balance(account_record, rec.amount * -1)
-            notification(self, "Saldo actualizado",
+            notification(rec, "Saldo actualizado",
                                 "Se actualizó correctamente el saldo de la cuenta asociada a este presupuesto.",
                                 "success")
+            
+        # Recalculate dashboard stats
+        user_id = budget.user_id.id
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard()
 
-        return self
+        return budget
     
     def write(self, vals):
         for rec in self:
@@ -157,8 +163,6 @@ class Budget(models.Model):
             if new_note:
                 vals["note"] = new_note
                 
-            budget = super().write(vals)
-
             # If only modifying the quantity (amount), not the account name
             if not new_account_budget_id and new_amount_budget:
                 # Update the wrong amount from the current account
@@ -197,6 +201,12 @@ class Budget(models.Model):
                 if not self.env.context.get("deny_notification"):
                     notification(rec, "Datos actualizados", "Se actualizaron correctamente los datos del presupuesto.", "success")
 
+        budget = super().write(vals)
+        
+        # Recalculate dashboard stats
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', rec.user_id.id)])
+        dashboards.recalculate_dashboard()
+
         return budget
 
     
@@ -219,4 +229,11 @@ class Budget(models.Model):
                         "Se actualizó correctamente el saldo de las cuentas asociadas a estos presupuestos.",
                         "success")
         
-        return super().unlink()
+        user_id = self.user_id.id
+        budget = super().unlink()
+
+        # Recalculate dashboard stats
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard()
+
+        return budget

@@ -71,6 +71,7 @@
                                 <list>
                                     <field name="name" width="130"/>
                                     <field name="account" width="130"/>
+                                    <field name="budget" width="130"/>
                                     <field name="amount" width="15"/>
                                     <field name="currency_id" width="15"/>
                                     <field name="date" width="20"/>
@@ -126,6 +127,51 @@
         </field>
     </record>
     <!-- Form view of cashmind.category model (end) -->
+    
+    <!-- Kanban view of cashmind.category model (start) -->
+    <record id="cashmind_category_kanban_view" model="ir.ui.view">
+        <field name="name">Cashmind category kanban view</field>
+        <field name="model">cashmind.category</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="category_type"/>
+                <field name="parent_id"/>
+                <field name="child_ids"/>
+
+                <t t-name="card">
+                    <div class="o_kanban_global_click">
+                        <header class="d-flex mb-2">
+                            <strong><t t-esc="record.name.value"/></strong>
+                        </header>
+                        <div class="d-flex mb-2">
+                            <field name="category_type" class="badge text-bg-primary fs-4"/>
+                        </div>
+                        <footer class="d-flex flex-column text-muted small">
+                            <t t-if="record.parent_id.raw_value">
+                                <div class="d-flex">
+                                    <span class="me-1">🏷️ Categoría superior:</span>
+                                    <field name="parent_id"/>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="d-flex">
+                                    <span class="me-1">🏷️ Categoría superior: No hay registros</span>
+                                </div>
+                            </t>
+                            
+                            <div class="d-flex">
+                                <span class="me-1">🏷️ Subcategorías:</span>
+                                <field name="child_ids"/>
+                            </div>
+                                                                                                                
+                        </footer>
+                    </div>
+                </t>
+            </kanban>
+        </field>
+    </record>
+    <!-- Kanban view of cashmind.category model (end) -->
 
     <!-- Search view of cashmind.category model (start) -->
     <record id="cashmind_category_search_view" model="ir.ui.view">
@@ -161,7 +207,7 @@
      <record id="cashmind_category_action" model="ir.actions.act_window">
         <field name="name">CATEGORÍAS</field>
         <field name="res_model">cashmind.category</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="context">{
             "search_default_used": 1    
         }</field>

@@ -6,6 +6,8 @@ from ..utils import update_balance, notification, clean_input
 class Save(models.Model):
     _name = "cashmind.save"
 
+    user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", unique=True,
+                              default=lambda self: self.env.user)
     name = fields.Char(string="Nombre", required=True)
     source_account = fields.Many2one("cashmind.account", string="Cuenta de origen", required=True)
     source_currency_id = fields.Many2one("res.currency", string="Moneda", readonly=True, 
@@ -107,9 +109,14 @@ class Save(models.Model):
             update_balance(destination_account_record, vals["amount"])
 
         notification(save, "Saldo actualizado", 
-                     "Se actualizó correctamente el saldo de la cuenta asociada a este ahorro.",
+                     "Se actualizó correctamente el saldo de las cuentas asociadas a este ahorro.",
                     "success")
         
+        # Recalculate dashboard stats
+        user_id = save.user_id.id
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard()
+
         return save 
         
     
@@ -243,6 +250,10 @@ class Save(models.Model):
                         "Se actualizaron correctamente los datos de este movimiento de ahorro.",
                         "success")
 
+        # Recalculate dashboard stats
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', rec.user_id.id)])
+        dashboards.recalculate_dashboard()
+
         return save
 
     def unlink(self):
@@ -256,7 +267,7 @@ class Save(models.Model):
 
             # Update the amount in the destination_account
             update_balance(destination_account_record, current_amount * -1)
-            
+        
         if len (self) < 2:
             notification(self, "Ahorro eliminado",
                         "Se actualizó correctamente el saldo de las cuentas asociadas a este ahorro.",
@@ -266,5 +277,11 @@ class Save(models.Model):
                         "Se actualizó correctamente el saldo de las cuentas asociadas a estos ahorros.",
                         "success")
         
-        return super().unlink()
+        user_id = self.user_id.id
+        save = super().unlink()
         
+        # Recalculate dashboard stats
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard()
+
+        return save

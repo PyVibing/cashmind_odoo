@@ -6,6 +6,7 @@
     "author": "Jeffry Hernández",
     "depends": ["base", "account"],
     "data": [
+        "security/cashmind_groups.xml",
         "security/ir.model.access.csv",
         "views/category_views.xml",
         "views/account_views.xml",
@@ -15,9 +16,10 @@
         "views/income_views.xml",
         "views/transfer_views.xml",
         "views/save_views.xml",
-        "views/menu_views.xml",
+        "views/dashboard_views.xml",
+        "views/menu_views.xml",        
     ],
-    "post_init_hook": "activate_currencies",
+    "post_init_hook": "initial_config",
     "installable": True,
     "application": True,
 }

@@ -5,6 +5,8 @@ from ..utils import notification, clean_input
 class Account(models.Model):
     _name = "cashmind.account"
 
+    user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", unique=True,
+                              default=lambda self: self.env.user)
     name = fields.Char(string="Nombre de la cuenta", required=True)
     account_type = fields.Selection([
         ("bank", "Cuenta bancaria"),
@@ -23,7 +25,7 @@ class Account(models.Model):
     budget_ids = fields.One2many("cashmind.budget", "account", string="Presupuestos")
     source_transfer_ids = fields.One2many("cashmind.transfer", "source_account", string="Transferencias enviadas")
     destination_transfer_ids = fields.One2many("cashmind.transfer", "destination_account", string="Transferencias recibidas")
-
+    
     @api.model
     def _default_currency(self):
         currency = self.env["res.currency"].search([("name", "=", "EUR")], limit=1)
@@ -66,6 +68,12 @@ class Account(models.Model):
         notification(self, f"{message.capitalize()} creada",
                         f"La {message} ha sido creada correctamente.",
                         "success")
+        
+        # Recalculate dashboard stats
+        user_id = account.user_id.id
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard() 
+
         return account
     
     
@@ -142,14 +150,14 @@ class Account(models.Model):
             if new_note:
                 vals["note"] = new_note
 
-            account = super().write(vals)
-            
-            if not self.env.context.get("deny_notification"):
-                notification(self, f"{message.capitalize()} actualizada",
-                            f"La {message} ha sido actualizada correctamente.",
-                            "success")
-        return account
+        account = super().write(vals)
+        
+        if not self.env.context.get("deny_notification"):
+            notification(self, f"{message.capitalize()} actualizada",
+                        f"La {message} ha sido actualizada correctamente.",
+                        "success")
 
+        return account
 
     def unlink(self):
         for rec in self:
@@ -166,4 +174,12 @@ class Account(models.Model):
                 raise ValidationError("Esta cuenta no puede eliminarse mientras existan movimientos asociados a esta. " \
                                     "Intente archivar la cuenta si no quiere eliminar los registros asociados. ")
 
-        return super().unlink()
+        user_id = self.user_id.id
+        account = super().unlink()
+
+        if not self.env.context.get("skip_dashboard"):
+            # Recalculate dashboard stats
+            dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+            dashboards.recalculate_dashboard()
+
+        return account

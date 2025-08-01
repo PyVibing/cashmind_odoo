@@ -110,6 +110,36 @@
     </record>
     <!-- Form view of cashmind.account model (end) -->
 
+    <!-- Kanban view of cashmind.account model (start) -->
+    <record id="cashmind_account_kanban_view" model="ir.ui.view">
+        <field name="name">Cashmind account kanban view</field>
+        <field name="model">cashmind.account</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="account_type"/>
+                <field name="balance"/>
+                <field name="currency_id"/>
+
+                <t t-name="card">
+                    <div class="o_kanban_global_click">
+                        <header class="d-flex justify-content-between mb-2">
+                            <strong><t t-esc="record.name.value"/></strong>
+                        </header>
+                        <div class="d-flex mb-2">
+                            <field name="balance" class="badge text-bg-primary fs-4"/>
+                        </div>
+                        <footer class="d-flex text-muted align-items-center small">
+                            <span>💳</span>
+                            <span class="ms-1"><field name="account_type"/></span>
+                        </footer>
+                    </div>
+                </t>                
+            </kanban>
+        </field>
+    </record>
+    <!-- Kanban view of cashmind.account model (end) -->
+
     <!-- Search view of cashmind.account model (start) -->
      <record id="cashmind_account_search_view" model="ir.ui.view">
         <field name="name">Cashmind account search view</field>
@@ -145,7 +175,7 @@
      <record id="cashmind_account_action" model="ir.actions.act_window">
         <field name="name">CUENTAS</field>
         <field name="res_model">cashmind.account</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="context">{
             "search_default_full_accounts": 1
         }</field>

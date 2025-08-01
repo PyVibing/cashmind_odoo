@@ -5,6 +5,8 @@ from ..utils import notification, clean_input
 class Category(models.Model):
     _name = "cashmind.category"
 
+    user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", unique=True,
+                              default=lambda self: self.env.user)
     name = fields.Char(string="Categoría", required=True)
     category_type = fields.Selection([
             ("expense", "Gasto"),
@@ -49,8 +51,7 @@ class Category(models.Model):
                 raise ValidationError("Solo puede crear una categoría especial que no sea de tipo INGRESO ni GASTO, la cual " \
                                     "debe llamarse específicamente 'AJUSTE DE SALDO'. Esta categoría puede ser utilizada " \
                                     "para movimientos y ajustes de saldo que no cuentan como estadística de INGRESO o GASTO.")
-            
-        
+                    
         else:
             forbidden_names = ["ajuste de saldo", "ajuste", "ajustar", "ajuste saldo", "ajustar saldo" ]
             if name in forbidden_names:
@@ -76,6 +77,11 @@ class Category(models.Model):
 
         category = super().create(vals)
         notification(category, "Categoría creada", "Se creó correctamente la categoría.", "success")
+
+        # Recalculate dashboard stats
+        user_id = category.user_id.id
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard()
 
         return category
 
@@ -117,7 +123,6 @@ class Category(models.Model):
                                     "computa como ingreso ni gasto. Si aun no la ha creado, puede hacerlo, definiendo como tipo de " \
                                     "categoría: 'AJUSTE DE SALDO' y nombrándola igualmente: 'AJUSTE DE SALDO")
                     
-
                 # Avoid changing name of special category
                 if current_name == "ajuste de saldo":
                     raise ValidationError("No puede cambiar el nombre de la categoría especial AJUSTE DE SALDO. Si prefiere, " \
@@ -129,14 +134,12 @@ class Category(models.Model):
                         if new_name == name_exists.name.lower():
                             raise ValidationError("Ya existe una categoría con este mismo nombre. Por favor, elija un nombre diferente.")
                     
-
             # Check if there are other models pointing to this one
             expense_record = self.env["cashmind.expense"].search([("category", "=", rec.id)])
             income_record = self.env["cashmind.income"].search([("category", "=", rec.id)]) 
             budget_record = self.env["cashmind.budget"].search([("category", "=", rec.id)])
             category_record = self.env["cashmind.category"].search([("parent_id", "=", rec.id)])
-            
-            
+                        
             if new_category_type and new_category_type != current_category_type:
                 # Avoid creating another special category
                 if new_category_type  == "NA":
@@ -178,13 +181,17 @@ class Category(models.Model):
             if new_description:
                 vals["description"] = new_description
 
-            category = super().write(vals)
-            notification(rec, "Categoría actualizada", "Se actualizaron correctamente los datos de la categoría", "success")
+        category = super().write(vals)
+        notification(rec, "Categoría actualizada", "Se actualizaron correctamente los datos de la categoría", "success")
 
-            return category
+        # Recalculate dashboard stats
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', rec.user_id.id)])
+        dashboards.recalculate_dashboard()
+
+        return category
 
 
-    def unlink(self):
+    def unlink(self): 
         for rec in self:
             # Check if there are other models pointing to this one
             expense_record = self.env["cashmind.expense"].search([("category", "=", rec.id)])
@@ -199,5 +206,12 @@ class Category(models.Model):
             elif category_record:
                 raise ValidationError("No puede eliminar una categoría que tenga subcategorías asociadas. " \
                                     "Intente archivar la categoría si no quiere eliminar las subcategorías asociadas a esta. ")
-            
-        return super().unlink()
+        
+        user_id = self.user_id.id
+        category = super().unlink()
+
+        # Recalculate dashboard stats
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard()
+
+        return category

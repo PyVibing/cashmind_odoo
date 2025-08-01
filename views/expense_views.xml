@@ -61,6 +61,61 @@
         </field>
     </record>
     <!-- Form view of cashmind.expense model (end) -->
+
+    <!-- Kanban view of cashmind.expense model (start) -->
+    <record id="cashmind_expense_kanban_view" model="ir.ui.view">
+        <field name="name">Cashmind expense kanban view</field>
+        <field name="model">cashmind.expense</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="amount"/>
+                <field name="currency_id"/>
+                <field name="category"/>
+                <field name="account"/>
+                <field name="budget"/>
+                <field name="date"/>
+                <field name="has_invoice"/>
+
+                <t t-name="card">
+                    <div class="o_kanban_global_click">
+                        <header class="d-flex justify-content-between mb-2">
+                            <strong><t t-esc="record.name.value"/></strong>
+                            <span class="text-muted"><t t-esc="record.date.value"/></span>
+                        </header>
+                        <div class="o_kanban_card_content mb-2 badge text-bg-danger fs-4">
+                            <field name="amount"/>
+                        </div>
+                        <footer class="d-flex flex-column text-muted small">
+                            <div class="d-flex">
+                                <span>🏷️</span>
+                                <field name="category"/>
+                            </div>
+                            <div class="d-flex">
+                                <t t-if="record.account.raw_value">
+                                    <span>💳</span>
+                                    <field name="account"/>
+                                </t>
+                                <t t-if="record.budget.raw_value">
+                                    <span>💳</span>
+                                    <field name="budget"/>
+                                </t>
+                            </div>
+                            <div class="d-flex">
+                                <t t-if="record.has_invoice.raw_value">
+                                    <span class="text-success">📌Tiene factura</span>
+                                </t>
+                                <t t-else="">
+                                    <span class="text-danger">📌No tiene factura</span>
+                                </t>
+                            </div>
+                        </footer>
+                    </div>
+                </t>
+            </kanban>
+        </field>
+    </record>
+    <!-- Kanban view of cashmind.expense model (end) -->
     
     <!-- Search view of cashmind.expense model (start) -->
     <record id="cashmind_expense_search_view" model="ir.ui.view">
@@ -102,7 +157,7 @@
     <record id="cashmind_expense_action" model="ir.actions.act_window">
         <field name="name">GASTOS</field>
         <field name="res_model">cashmind.expense</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
     </record>
     <!-- Action of cashmind.expense model (end) -->
 </odoo>
