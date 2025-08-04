@@ -3,8 +3,8 @@ from odoo.exceptions import ValidationError
 from datetime import datetime
 from ..utils import notification, update_balance, clean_input
 
-class Transfer(models.Model):
-    _name = "cashmind.transfer"
+class Transfer_external(models.Model):
+    _name = "cashmind.transfer_external"
 
     user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", unique=True,
                               default=lambda self: self.env.user)
@@ -15,11 +15,9 @@ class Transfer(models.Model):
                                          default=lambda self: self._default_currency())
     available_source_balance = fields.Monetary(string="Balance", currency_field="source_currency_id", readonly=True,
                                                compute="_compute_source_availability")
-    destination_account = fields.Many2one("cashmind.account", string="Cuenta de destino", required=True, domain="[('user_id', '=', uid)]")
+    destination_account = fields.Many2one("cashmind.account", string="Cuenta de destino", required=True, domain="[('user_id', '!=', uid)]")
     destination_currency_id = fields.Many2one("res.currency", string="Moneda", readonly=True, 
                                               store=True, compute="_compute_destination_currency")
-    available_destination_balance = fields.Monetary(string="Balance", currency_field="destination_currency_id", readonly=True,
-                                                    compute="_compute_destination_availability")
     amount = fields.Monetary(string="Cantidad", currency_field="source_currency_id", required=True)
     transfer_date = fields.Date(string="Fecha", default=lambda self: fields.Date.context_today(self), 
                                 required=True)
@@ -36,11 +34,6 @@ class Transfer(models.Model):
         for rec in self:
             rec.available_source_balance = rec.source_account.balance
     
-    @api.onchange("destination_account")
-    def _compute_destination_availability(self):
-        for rec in self:
-            rec.available_destination_balance = rec.destination_account.balance 
-
     @api.depends("source_account")
     def _compute_source_currency(self):
         for rec in self:
@@ -68,7 +61,7 @@ class Transfer(models.Model):
         note = clean_input(vals["note"], "note") if "note" in vals and vals["note"] else None
 
         # Check if this name already exists for another record
-        name_exists = self.env["cashmind.transfer"].search([
+        name_exists = self.env["cashmind.transfer_external"].search([
             ("name", "=", name.capitalize()),
             ("user_id", "=", self.env.uid)]) if name else None
         if name_exists:
@@ -84,10 +77,6 @@ class Transfer(models.Model):
         if source_account_record.currency_id != destination_account_record.currency_id:
             raise ValidationError("El tipo de moneda de la cuenta de origen y destino no pueden ser diferentes.")
 
-        # Check same accounts
-        if "source_account" in vals and "destination_account" in vals and vals["source_account"] == vals["destination_account"]:
-            raise ValidationError("Las cuentas de origen y destino no pueden ser la misma.")
-        
         # Check amount > 0
         if "amount" in vals and vals["amount"] is not None and vals["amount"] <= 0:
             raise ValidationError("La cantidad a transferir debe ser mayor que 0")
@@ -149,7 +138,7 @@ class Transfer(models.Model):
 
             # Check if this name already exists for another record
             if new_name and new_name != rec.name.lower():
-                name_exists = self.env["cashmind.transfer"].search([
+                name_exists = self.env["cashmind.transfer_external"].search([
                     ("name", "=", new_name.capitalize()),
                     ("user_id", "=", self.env.uid)])
                 if name_exists:
@@ -172,21 +161,15 @@ class Transfer(models.Model):
             if new_destination_account_id:
                 new_destination_account_record = rec.env["cashmind.account"].browse(new_destination_account_id)
 
-            # Check same accounts and different currencies for both accounts
+            # Check different currencies for both accounts
             if new_source_account_id and new_destination_account_id:
-                if new_source_account_id ==  new_destination_account_id:
-                    raise ValidationError("Las cuentas de origen y destino no pueden ser la misma.")
-                elif new_source_account_record.currency_id != new_destination_account_record.currency_id:
+                if new_source_account_record.currency_id != new_destination_account_record.currency_id:
                     raise ValidationError("El tipo de moneda de la cuenta de origen y destino no pueden ser diferentes.")
             elif not new_source_account_id and new_destination_account_id:
-                if current_source_account_id == new_destination_account_id:
-                    raise ValidationError("Las cuentas de origen y destino no pueden ser la misma.")
-                elif current_source_account_record.currency_id != new_destination_account_record.currency_id:
+                if current_source_account_record.currency_id != new_destination_account_record.currency_id:
                     raise ValidationError("El tipo de moneda de la cuenta de origen y destino no pueden ser diferentes.")
             elif new_source_account_id and not new_destination_account_id:
-                if new_source_account_id == current_destination_account_id:
-                    raise ValidationError("Las cuentas de origen y destino no pueden ser la misma.")
-                elif new_source_account_record.currency_id != current_destination_account_record.currency_id:
+                if new_source_account_record.currency_id != current_destination_account_record.currency_id:
                     raise ValidationError("El tipo de moneda de la cuenta de origen y destino no pueden ser diferentes.")
 
             # Check available balance for source_account
@@ -277,16 +260,11 @@ class Transfer(models.Model):
 
             # Update the amount in the destination_account
             update_balance(destination_account_record, current_amount * -1)
-        
-        if len(self) < 2:
-            notification(self, "Transferencia eliminada",
-                        "Se actualizó correctamente el saldo de las cuentas asociadas a esta transferencia.",
-                        "success")
-        else:
-            notification(self, "Transferencias eliminadas",
-                        "Se actualizó correctamente el saldo de las cuentas asociadas a estas transferencias.",
-                        "success")
-        
+                
+        notification(self, "Transferencia eliminada",
+                    "Se actualizó correctamente el saldo de las cuentas asociadas a esta transferencia.",
+                    "success")
+                
         user_id = self.user_id.id
         transfer = super().unlink()
 

@@ -25,6 +25,8 @@ class Account(models.Model):
     budget_ids = fields.One2many("cashmind.budget", "account", string="Presupuestos")
     source_transfer_ids = fields.One2many("cashmind.transfer", "source_account", string="Transferencias enviadas")
     destination_transfer_ids = fields.One2many("cashmind.transfer", "destination_account", string="Transferencias recibidas")
+    source_transfer_external_ids = fields.One2many("cashmind.transfer_external", "source_account", string="Transferencias enviadas")
+    destination_transfer_external_ids = fields.One2many("cashmind.transfer_external", "destination_account", string="Transferencias recibidas")
     
     @api.model
     def _default_currency(self):
@@ -32,19 +34,22 @@ class Account(models.Model):
         return currency.id if currency else False
     
     def create(self, vals):
-        # Cleaning the category name and description
-        name = clean_input(vals["name"], "title")
-        name = name.lower()
-        note = clean_input(vals["note"], "note") if vals["note"] else None
+        # Cleaning the name and description
+        name = clean_input(vals["name"], "title") if "name" in vals else None
+        name = name.lower() if name else None
+        note = clean_input(vals["note"], "note") if "note" in vals and vals["note"] else None
 
-        # Check if this name already exists for another account
-        name_exists = self.env["cashmind.account"].search([("name", "=", name.capitalize())])
+        # Check if this name already exists for another record for this user
+        name_exists = self.env["cashmind.account"].search([
+            ("name", "=", name.capitalize()), 
+            ("user_id", "=", self.env.uid)]) if name else None
+
         if name_exists:
             if name == name_exists.name.lower():
                 raise ValidationError("Ya existe una cuenta con este mismo nombre. Por favor, elija un nombre diferente.")
 
         # Identify account type to personalize messages
-        account_type = vals["account_type"]
+        account_type = vals["account_type"] if "account_type" in vals else None
         
         if account_type == "bank":
             message = "cuenta bancaria"
@@ -57,10 +62,10 @@ class Account(models.Model):
         else:
             message = "cuenta"
         
-        if vals["balance"] < 0:
+        if "balance" in vals and vals["balance"] < 0:
             raise ValidationError(f"El balance de la {message} no puede ser menor que 0.")
         
-        vals["name"] = name.capitalize()
+        vals["name"] = name.capitalize() if "name" in vals else None
         if note:
             vals["note"] = note
 
@@ -79,14 +84,16 @@ class Account(models.Model):
     
     def write(self, vals):
         for rec in self:
-            # Cleaning the category name and description
+            # Cleaning the name and description
             new_name = clean_input(vals["name"], "title") if "name" in vals and vals["name"] else None
             new_name = new_name.lower() if new_name else None
             new_note = clean_input(vals["note"], "note") if "note" in vals and vals["note"] else None
 
-            # Check if this name already exists for another account
+            # Check if this name already exists for another record
             if new_name and new_name != rec.name.lower():
-                name_exists = self.env["cashmind.account"].search([("name", "=", new_name.capitalize())])
+                name_exists = self.env["cashmind.account"].search([
+                    ("name", "=", new_name.capitalize()),
+                    ("user_id", "=", self.env.uid)])
                 if name_exists:
                     if new_name == name_exists.name.lower():
                         raise ValidationError("Ya existe una cuenta con este mismo nombre. Por favor, elija un nombre diferente.")

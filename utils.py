@@ -30,8 +30,11 @@ def update_balance(account_record, amount, balance_field_name="balance"):
                 "expended": account_record.expended + amount
             })
         
+        return True
+        
     else:
         print("Cuenta no encontrada o inválida:", account_record)
+        return None
 
 
 def clean_input(text_to_clean: str, field: str):

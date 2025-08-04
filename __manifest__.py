@@ -15,6 +15,7 @@
         "views/expense_views.xml",
         "views/income_views.xml",
         "views/transfer_views.xml",
+        "views/transfer_external_views.xml",
         "views/save_views.xml",
         "views/dashboard_views.xml",
         "views/menu_views.xml",        

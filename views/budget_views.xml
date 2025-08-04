@@ -159,6 +159,7 @@
         <field name="context">{
             "search_default_with_availability": 1
         }</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
     </record>
     <!-- Action of cashmind.budget model (end) -->
 </odoo>

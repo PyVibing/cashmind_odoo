@@ -9,11 +9,11 @@ class Income(models.Model):
     user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", unique=True,
                               default=lambda self: self.env.user)
     name = fields.Char(string="Nombre", required=True)
-    account = fields.Many2one("cashmind.account", string="Cuenta de destino", required=True)
+    account = fields.Many2one("cashmind.account", string="Cuenta de destino", required=True, domain="[('user_id', '=', uid)]")
     available = fields.Monetary(string="Balance", compute="_compute_availability", currency_field="currency_id", 
                                 readonly=True)
-    category = fields.Many2one("cashmind.category", string="Categoría", domain=[("category_type", "!=", "expense")], 
-                               required=True)
+    category = fields.Many2one("cashmind.category", string="Categoría", required=True,
+                               domain="[('category_type', '!=', 'expense'), ('user_id', '=', uid)]")
     currency_id = fields.Many2one("res.currency", string="Moneda", readonly=True, 
                                   store=True, compute="_compute_currency", default=lambda self: self._default_currency())
     amount = fields.Monetary(string="Cantidad", currency_field="currency_id", required=True)
@@ -47,25 +47,27 @@ class Income(models.Model):
         if isinstance(vals, list):
             vals = vals[0]
 
-        # Cleaning the category name and description
-        name = clean_input(vals["name"], "title")
-        name = name.lower()
-        note = clean_input(vals["note"], "note") if vals["note"] else None
+        # Cleaning the name and description
+        name = clean_input(vals["name"], "title") if "name" in vals else None
+        name = name.lower() if name else None
+        note = clean_input(vals["note"], "note") if "note" in vals and vals["note"] else None
 
-        # Check if this name already exists for another budget
-        name_exists = self.env["cashmind.income"].search([("name", "=", name.capitalize())])
+        # Check if this name already exists for another record
+        name_exists = self.env["cashmind.income"].search([
+            ("name", "=", name.capitalize()),
+            ("user_id", "=", self.env.uid)]) if name else None
         if name_exists:
             if name == name_exists.name.lower():
                 raise ValidationError("Ya existe un ingreso con este mismo nombre. Por favor, elija un nombre diferente.")
             
-        if vals["amount"] is not None and vals["amount"] <= 0:
+        if "amount" in vals and vals["amount"] is not None and vals["amount"] <= 0:
             raise ValidationError("La cantidad a ingresar debe ser mayor que 0.")
         
         # Check if date is maximum today
-        if datetime.strptime(vals["date"], "%Y-%m-%d") > datetime.today():
+        if "date" in vals and datetime.strptime(vals["date"], "%Y-%m-%d") > datetime.today():
             raise ValidationError("La fecha del ingreso no puede ser posterior a hoy. Ingrese una fecha válida.")
         
-        vals["name"] = name.capitalize()
+        vals["name"] = name.capitalize() if "name" in vals else None
         if note:
             vals["note"] = note
 
@@ -96,7 +98,9 @@ class Income(models.Model):
 
             # Check if this name already exists for another account
             if new_name and new_name != rec.name.lower():
-                name_exists = self.env["cashmind.income"].search([("name", "=", new_name.capitalize())])
+                name_exists = self.env["cashmind.income"].search([
+                    ("name", "=", new_name.capitalize()),
+                    ("user_id", "=", self.env.uid)])
                 if name_exists:
                     if new_name == name_exists.name.lower():
                         raise ValidationError("Ya existe un ingreso con este mismo nombre. Por favor, elija un nombre diferente.")

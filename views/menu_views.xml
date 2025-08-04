@@ -9,26 +9,29 @@
 
     <!-- Primer submenú: Movimientos -->
     <menuitem id="menu_cashmind_second_level_1" name="Movimientos" parent="menu_cashmind_root" sequence="5"/>
-    <menuitem id="menu_cashmind_income" name="Ingresos" parent="menu_cashmind_second_level_1" 
-              action="cashmind_income_action" sequence="1" />
-    <menuitem id="menu_cashmind_expense" name="Gastos" parent="menu_cashmind_second_level_1" 
-              action="cashmind_expense_action" sequence="2"/>
-    <menuitem id="menu_cashmind_transfer" name="Transferencias" parent="menu_cashmind_second_level_1"
-              action="cashmind_transfer_action" sequence="3"/>
-    <menuitem id="menu_cashmind_save_action" name="Ahorrar" parent="menu_cashmind_second_level_1"
-              action="cashmind_save_action" sequence="4"/>
+        <menuitem id="menu_cashmind_income" name="Ingresos" parent="menu_cashmind_second_level_1" 
+                action="cashmind_income_action" sequence="1" />
+        <menuitem id="menu_cashmind_expense" name="Gastos" parent="menu_cashmind_second_level_1" 
+                action="cashmind_expense_action" sequence="2"/>
+        <menuitem id="menu_cashmind_transfer_root" name="Transferencias" parent="menu_cashmind_second_level_1" sequence="3"/>
+                <menuitem id="menu_cashmind_internal_transfer" name="A cuenta propia" parent="menu_cashmind_transfer_root"
+                    action="cashmind_internal_transfer_action" sequence="1"/>
+                <menuitem id="menu_cashmind_external_transfer" name="A cuenta externa" parent="menu_cashmind_transfer_root"
+                    action="cashmind_external_transfer_action" sequence="2"/>
+        <menuitem id="menu_cashmind_save_action" name="Ahorrar" parent="menu_cashmind_second_level_1"
+                action="cashmind_save_action" sequence="4"/>
 
     <!-- Segundo submenú: Planificación -->
     <menuitem id="menu_cashmind_second_level_2" name="Planificación" parent="menu_cashmind_root" sequence="6"/>
-    <menuitem id="menu_cashmind_budget" name="Presupuestos" parent="menu_cashmind_second_level_2"
-              action="cashmind_budget_action" sequence="1"/>
-    <menuitem id="menu_cashmind_savinggoal" name="Metas de ahorro" parent="menu_cashmind_second_level_2"
-              action="cashmind_savinggoal_action" sequence="2"/>
+        <menuitem id="menu_cashmind_budget" name="Presupuestos" parent="menu_cashmind_second_level_2"
+                action="cashmind_budget_action" sequence="1"/>
+        <menuitem id="menu_cashmind_savinggoal" name="Metas de ahorro" parent="menu_cashmind_second_level_2"
+                action="cashmind_savinggoal_action" sequence="2"/>
 
     <!-- Tercer submenú: Configuración -->
     <menuitem id="menu_cashmind_second_level_3" name="Configuración" parent="menu_cashmind_root" sequence="10"/>
-    <menuitem id="menu_cashmind_account" name="Cuentas" parent="menu_cashmind_second_level_3" 
-              action="cashmind_account_action" sequence="1"/>
-    <menuitem id="menu_cashmind_category" name="Categorías" parent="menu_cashmind_second_level_3" 
-              action="cashmind_category_action" sequence="2"/>
+        <menuitem id="menu_cashmind_account" name="Cuentas" parent="menu_cashmind_second_level_3" 
+                action="cashmind_account_action" sequence="1"/>
+        <menuitem id="menu_cashmind_category" name="Categorías" parent="menu_cashmind_second_level_3" 
+                action="cashmind_category_action" sequence="2"/>
 </odoo>

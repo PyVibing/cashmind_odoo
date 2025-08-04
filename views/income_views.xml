@@ -107,8 +107,6 @@
             </kanban>
         </field>
     </record>
-
-
     <!-- Kanban view of cashmind.income model (end) -->
 
     
@@ -151,6 +149,7 @@
         <field name="name">INGRESOS</field>
         <field name="res_model">cashmind.income</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
     </record>
     <!-- Action of cashmind.income model (end) -->
 </odoo>

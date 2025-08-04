@@ -124,6 +124,7 @@
         <field name="name">AHORRAR</field>
         <field name="res_model">cashmind.save</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
     </record>
     <!-- Action of cashmind.save model (end) -->
 </odoo>

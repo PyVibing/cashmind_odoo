@@ -12,8 +12,10 @@ class Category(models.Model):
             ("expense", "Gasto"),
             ("income", "Ingreso"),
             ("NA", "Ajuste de saldo")
-        ], string="Tipo de categoría", default="expense", required=True)
-    parent_id = fields.Many2one("cashmind.category", string="Categoría superior", index=True, ondelete="cascade")
+        ], string="Tipo de categoría", required=True)
+
+    parent_id = fields.Many2one("cashmind.category", string="Categoría superior", index=True, ondelete="cascade", 
+                                domain="[('user_id', '=', uid)]")
     child_ids = fields.One2many("cashmind.category", "parent_id", string="Subcategorías")
     description = fields.Text(string="Descripción")
     active = fields.Boolean(string="Mostrar", default=True)
@@ -33,44 +35,47 @@ class Category(models.Model):
     def _onchange_category_type(self):
         self.parent_id = False
 
-
     def create(self, vals):
-        name = clean_input(vals["name"], "title")
-        name = name.lower()
-        description = clean_input(vals["description"], "description") if vals["description"] else None
+        name = clean_input(vals["name"], "title") if "name" in vals else None
+        name = name.lower() if name else None
+        description = clean_input(vals["description"], "description") if "description" in vals and vals["description"] else None
 
-        if vals["category_type"] == "NA":
+        if "category_type" in vals and vals["category_type"] == "NA":
             # Avoid creating another special category
-            special_category = self.env["cashmind.category"].search([("category_type", "=", "NA")])
+            special_category = self.env["cashmind.category"].search([
+                ("category_type", "=", "NA"),
+                ("user_id", "=", self.env.uid)])
             if special_category:
                 raise ValidationError("Solo puede existir una categoría especial llamada AJUSTE DE SALDO, y no puede crear " \
                                     "otra igual. Debe seleccionar obligatoriamente INGRESO o GASTO como tipo de categoría, y " \
                                     "darle un nombre diferente.")
             # Check name of this special category
-            if name != "ajuste de saldo":
+            if name and name != "ajuste de saldo":
                 raise ValidationError("Solo puede crear una categoría especial que no sea de tipo INGRESO ni GASTO, la cual " \
                                     "debe llamarse específicamente 'AJUSTE DE SALDO'. Esta categoría puede ser utilizada " \
                                     "para movimientos y ajustes de saldo que no cuentan como estadística de INGRESO o GASTO.")
                     
         else:
             forbidden_names = ["ajuste de saldo", "ajuste", "ajustar", "ajuste saldo", "ajustar saldo" ]
-            if name in forbidden_names:
+            if name and name in forbidden_names:
                 raise ValidationError("El nombre 'AJUSTE DE SALDO' (o similares) está reservado para una categoría especial que no " \
                                     "computa como ingreso ni gasto. Si aun no la ha creado, puede hacerlo, definiendo como tipo de " \
                                     "categoría: 'AJUSTE DE SALDO' y nombrándola igualmente: 'AJUSTE DE SALDO")
             
         # Check if this name doesn't exist for another category
-        name_exists = self.env["cashmind.category"].search([("name", "=", name.capitalize())])
+        name_exists = self.env["cashmind.category"].search([
+            ("name", "=", name.capitalize()),
+            ("user_id", "=", self.env.uid)]) if name else None
         if name_exists:
             if name == name_exists.name.lower():
                 raise ValidationError("Ya existe una categoría con este mismo nombre. Por favor, elija un nombre diferente.")
         
-        if name != "ajuste de saldo":
+        if name and name != "ajuste de saldo":
             vals["name"] = name.capitalize()
         else:
-            vals["name"] = name.upper()
-            vals["parent_id"] = False
-            vals["child_ids"] = False
+            vals["name"] = name.upper() if "name" in vals else None
+            vals["parent_id"] = False if "parent_id" in vals else None
+            vals["child_ids"] = False if "child_ids" in vals else None
         
         if description:
             vals["description"] = description
@@ -88,7 +93,7 @@ class Category(models.Model):
     
     def write(self, vals):
         for rec in self:
-            # Cleaning the category name and description
+            # Cleaning the name and description
             new_name = clean_input(vals["name"], "title") if "name" in vals and vals["name"] else None
             new_name = new_name.lower() if new_name else None
             new_description = clean_input(vals["description"], "description") if (
@@ -102,7 +107,9 @@ class Category(models.Model):
                 new_category_type = None
             current_category_type = rec.category_type
 
-            special_category_exists = self.env["cashmind.category"].search([("category_type", "=", "NA")])
+            special_category_exists = self.env["cashmind.category"].search([
+                ("category_type", "=", "NA"),
+                ("user_id", "=", self.env.uid)])
 
             # If trying to change the current_name
             forbidden_names = ["ajuste de saldo", "ajuste", "ajustar", "ajuste saldo", "ajustar saldo" ]
@@ -129,7 +136,9 @@ class Category(models.Model):
                                         "puede eliminarla.")
                 else:
                     # Check if this name doesn't exist for another existing category
-                    name_exists = rec.search([("name", "=", new_name.capitalize())])
+                    name_exists = rec.search([
+                        ("name", "=", new_name.capitalize()),
+                        ("user_id", "=", self.env.uid)])
                     if name_exists:
                         if new_name == name_exists.name.lower():
                             raise ValidationError("Ya existe una categoría con este mismo nombre. Por favor, elija un nombre diferente.")

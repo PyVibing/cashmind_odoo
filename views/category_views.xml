@@ -35,7 +35,7 @@
                         </group>
                         <group>
                             <separator string="Relación con otras categorías"/>
-                            <field name="parent_id" domain="[('category_type', '=', category_type)]"/>
+                            <field name="parent_id" domain="[('category_type', '=', category_type), ('user_id', '=', uid)]"/>
                             <field name="child_ids" domain="[('category_type', '=', category_type)]" 
                                     context="{'default_category_type': category_type}">
                                 <list>
@@ -211,6 +211,7 @@
         <field name="context">{
             "search_default_used": 1    
         }</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
     </record>
      <!-- Action of cashmind.category model (end) -->
 </odoo>

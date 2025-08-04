@@ -2,9 +2,9 @@
 
 <odoo>
     <!-- Tree view of cashmind.transfer model (start) -->
-    <record id="cashmind_transfer_tree_view" model="ir.ui.view">
-        <field name="name">Cashmind transfer tree view</field>
-        <field name="model">cashmind.transfer</field>
+    <record id="cashmind_transfer_external_tree_view" model="ir.ui.view">
+        <field name="name">Cashmind transfer_external tree view</field>
+        <field name="model">cashmind.transfer_external</field>
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
@@ -21,9 +21,9 @@
     <!-- Tree view of cashmind.transfer model (end) -->
     
     <!-- Form view of cashmind.transfer model (start) -->
-    <record id="cashmind_transfer_form_view" model="ir.ui.view">
-        <field name="name">Cashmind transfer form view</field>
-        <field name="model">cashmind.transfer</field>
+    <record id="cashmind_transfer_external_form_view" model="ir.ui.view">
+        <field name="name">Cashmind transfer_external form view</field>
+        <field name="model">cashmind.transfer_external</field>
         <field name="arch" type="xml">
             <form>
                 <sheet>
@@ -51,9 +51,6 @@
                             <group>
                                 <field name="destination_account" options="{'no_create': True}" string="Cuenta de destino*"/>
                             </group>
-                            <group>
-                                <field name="available_destination_balance"/>
-                            </group>
                         </group>
                         <group colspan="2">
                             <field name="destination_currency_id" invisible="1"/>
@@ -69,9 +66,9 @@
     <!-- Form view of cashmind.transfer model (end) -->
 
     <!-- Kanban view of cashmind.transfer model (start) -->
-    <record id="cashmind_transfer_kanban_view" model="ir.ui.view">
-        <field name="name">Cashmind transfer kanban view</field>
-        <field name="model">cashmind.transfer</field>
+    <record id="cashmind_transfer_external_kanban_view" model="ir.ui.view">
+        <field name="name">Cashmind transfer_external kanban view</field>
+        <field name="model">cashmind.transfer_external</field>
         <field name="arch" type="xml">
             <kanban class="o_kanban_mobile">
                 <field name="name"/>
@@ -108,9 +105,9 @@
     <!-- Kanban view of cashmind.transfer model (end) -->
     
     <!-- Search view of cashmind.transfer model (start) -->
-    <record id="cashmind_transfer_search_view" model="ir.ui.view">
-        <field name="name">Cashmind transfer search view</field>
-        <field name="model">cashmind.transfer</field>
+    <record id="cashmind_transfer_external_search_view" model="ir.ui.view">
+        <field name="name">Cashmind transfer_external search view</field>
+        <field name="model">cashmind.transfer_external</field>
         <field name="arch" type="xml">
             <search string="Buscar transferencias">
                 <field name="name" string="por nombre"/>
@@ -137,9 +134,9 @@
     <!-- Search view of cashmind.transfer model (end) -->
 
     <!-- Action of cashmind.transfer model (start) -->
-    <record id="cashmind_internal_transfer_action" model="ir.actions.act_window">
-        <field name="name">TRANSFERENCIAS A CUENTA PROPIA</field>
-        <field name="res_model">cashmind.transfer</field>
+    <record id="cashmind_external_transfer_action" model="ir.actions.act_window">
+        <field name="name">TRANSFERENCIAS A CUENTA EXTERNA</field>
+        <field name="res_model">cashmind.transfer_external</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('user_id', '=', uid)]</field>
     </record>

@@ -77,30 +77,64 @@
                         </page>
                         <page string="Transferencias">
                             <notebook>
-                                <page string="Enviadas">
-                                    <field name="source_transfer_ids">
-                                        <list>
-                                            <field name="name" width="70"/>
-                                            <field name="amount" width="30"/>
-                                            <field name="source_currency_id" width="20"/>
-                                            <field name="destination_account" width="50"/>
-                                            <field name="transfer_date" width="50"/>
-                                            <field name="note" width="100"/>
-                                        </list>
-                                    </field>
+
+                                <page string="Internas">
+                                    <notebook>
+                                        <page string="Enviadas">
+                                            <field name="source_transfer_ids">
+                                                <list>
+                                                    <field name="name" width="70"/>
+                                                    <field name="amount" width="30"/>
+                                                    <field name="source_currency_id" width="20"/>
+                                                    <field name="destination_account" width="50"/>
+                                                    <field name="transfer_date" width="50"/>
+                                                    <field name="note" width="100"/>
+                                                </list>
+                                            </field>
+                                        </page>
+                                        <page string="Recibidas">
+                                            <field name="destination_transfer_ids">
+                                                <list>
+                                                    <field name="name" width="70"/>
+                                                    <field name="amount" width="30"/>
+                                                    <field name="source_currency_id" width="20"/>
+                                                    <field name="source_account" width="50"/>
+                                                    <field name="transfer_date" width="50"/>
+                                                    <field name="note" width="100"/>
+                                                </list>
+                                            </field>
+                                        </page>
+                                    </notebook>
                                 </page>
-                                <page string="Recibidas">
-                                    <field name="destination_transfer_ids">
-                                        <list>
-                                            <field name="name" width="70"/>
-                                            <field name="amount" width="30"/>
-                                            <field name="source_currency_id" width="20"/>
-                                            <field name="source_account" width="50"/>
-                                            <field name="transfer_date" width="50"/>
-                                            <field name="note" width="100"/>
-                                        </list>
-                                    </field>
+                                <page string="Externas">
+                                    <notebook>
+                                        <page string="Enviadas">
+                                            <field name="source_transfer_external_ids">
+                                                <list>
+                                                    <field name="name" width="70"/>
+                                                    <field name="amount" width="30"/>
+                                                    <field name="source_currency_id" width="20"/>
+                                                    <field name="destination_account" width="50"/>
+                                                    <field name="transfer_date" width="50"/>
+                                                    <field name="note" width="100"/>
+                                                </list>
+                                            </field>
+                                        </page>
+                                        <page string="Recibidas">
+                                            <field name="destination_transfer_external_ids">
+                                                <list>
+                                                    <field name="name" width="70"/>
+                                                    <field name="amount" width="30"/>
+                                                    <field name="source_currency_id" width="20"/>
+                                                    <field name="source_account" width="50"/>
+                                                    <field name="transfer_date" width="50"/>
+                                                    <field name="note" width="100"/>
+                                                </list>
+                                            </field>
+                                        </page>
+                                    </notebook>
                                 </page>
+
                             </notebook>
                         </page>
                     </notebook>
@@ -179,6 +213,7 @@
         <field name="context">{
             "search_default_full_accounts": 1
         }</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
     </record>
      <!-- Action of cashmind.account model (end) -->
 </odoo>

@@ -9,13 +9,14 @@ class Save(models.Model):
     user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", unique=True,
                               default=lambda self: self.env.user)
     name = fields.Char(string="Nombre", required=True)
-    source_account = fields.Many2one("cashmind.account", string="Cuenta de origen", required=True)
+    source_account = fields.Many2one("cashmind.account", string="Cuenta de origen", required=True, domain="[('user_id', '=', uid)]")
     source_currency_id = fields.Many2one("res.currency", string="Moneda", readonly=True, 
                                          store=True, compute="_compute_source_currency")
     available = fields.Monetary(string="Disponible", compute="_compute_availability", currency_field="source_currency_id", 
                                 readonly=True)
     amount = fields.Monetary(string="Cantidad", required=True, currency_field="source_currency_id")
-    destination_savinggoal_account = fields.Many2one("cashmind.savinggoal", string="Cuenta de ahorro", required=True)
+    destination_savinggoal_account = fields.Many2one("cashmind.savinggoal", string="Cuenta de ahorro", required=True, 
+                                                     domain="[('user_id', '=', uid)]")
     destination_currency_id = fields.Many2one("res.currency", string="Moneda", readonly=True, 
                                               store=True, compute="_compute_destination_currency")
     available_destination = fields.Monetary(string="Balance actual", compute="_compute_destination_availability", 
@@ -62,13 +63,15 @@ class Save(models.Model):
         if isinstance(vals, list):
             vals = vals[0]
 
-        # Cleaning the category name and description
-        name = clean_input(vals["name"], "title")
-        name = name.lower()
-        note = clean_input(vals["note"], "note") if vals["note"] else None
+        # Cleaning the name and description
+        name = clean_input(vals["name"], "title") if "name" in vals else None
+        name = name.lower() if name else None
+        note = clean_input(vals["note"], "note") if "note" in vals and vals["note"] else None
 
-        # Check if this name already exists for another budget
-        name_exists = self.env["cashmind.save"].search([("name", "=", name.capitalize())])
+        # Check if this name already exists for another record
+        name_exists = self.env["cashmind.save"].search([
+            ("name", "=", name.capitalize()),
+            ("user_id", "=", self.env.uid)]) if name else None
         if name_exists:
             if name == name_exists.name.lower():
                 raise ValidationError("Ya existe un movimiento de ahorro con este mismo nombre. Por favor, elija un nombre diferente.")
@@ -83,19 +86,19 @@ class Save(models.Model):
             raise ValidationError("El tipo de moneda de la cuenta de origen y destino no pueden ser diferentes.")
 
         # Check amount > 0
-        if vals["amount"] is not None and vals["amount"] <= 0:
+        if "amount" in vals and vals["amount"] is not None and vals["amount"] <= 0:
             raise ValidationError("La cantidad a ahorrar debe ser mayor que 0")
 
         # Check amount <= available_source_balance
         available_source_balance = source_account_record.balance
-        if vals["amount"] > available_source_balance:
+        if "amount" in vals and vals["amount"] > available_source_balance:
             raise ValidationError("No hay saldo suficiente en la cuenta de origen para realizar la operación.")
         
         # Check if date is maximum today
-        if datetime.strptime(vals["date"], "%Y-%m-%d") > datetime.today():
+        if "date" in vals and datetime.strptime(vals["date"], "%Y-%m-%d") > datetime.today():
             raise ValidationError("La fecha del ahorro no puede ser posterior a hoy.")
         
-        vals["name"] = name.capitalize()
+        vals["name"] = name.capitalize() if name else None
         if note:
             vals["note"] = note
 
@@ -135,14 +138,16 @@ class Save(models.Model):
             current_destination_account_id = rec.destination_savinggoal_account.id
             new_destination_account_id = vals.get("destination_savinggoal_account", None)
 
-            # Cleaning the category name and description
+            # Cleaning the name and description
             new_name = clean_input(vals["name"], "title") if "name" in vals and vals["name"] else None
             new_name = new_name.lower() if new_name else None
             new_note = clean_input(vals["note"], "note") if "note" in vals and vals["note"] else None
 
-            # Check if this name already exists for another account
+            # Check if this name already exists for another record
             if new_name and new_name != rec.name.lower():
-                name_exists = self.env["cashmind.save"].search([("name", "=", new_name.capitalize())])
+                name_exists = self.env["cashmind.save"].search([
+                    ("name", "=", new_name.capitalize()),
+                    ("user_id", "=", self.env.uid)])
                 if name_exists:
                     if new_name == name_exists.name.lower():
                         raise ValidationError("Ya existe un movimiento de ahorro con este mismo nombre. Por favor, elija un nombre diferente.")

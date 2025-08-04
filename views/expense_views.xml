@@ -158,6 +158,7 @@
         <field name="name">GASTOS</field>
         <field name="res_model">cashmind.expense</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
     </record>
     <!-- Action of cashmind.expense model (end) -->
 </odoo>

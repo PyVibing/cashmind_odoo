@@ -58,31 +58,36 @@ class SavingGoal(models.Model):
                 rec.reached_percent = rec.balance / rec.amount * 100
 
     def create(self, vals):
-        # Cleaning the category name and description
-        name = clean_input(vals["name"], "title")
-        name = name.lower()
-        note = clean_input(vals["note"], "note") if vals["note"] else None
+        if isinstance(vals, list):
+            vals = vals[0]
+            
+        # Cleaning the name and description
+        name = clean_input(vals["name"], "title") if "name" in vals else None
+        name = name.lower() if name else None
+        note = clean_input(vals["note"], "note") if "note" in vals and vals["note"] else None
 
-        # Check if this name already exists for another budget
-        name_exists = self.env["cashmind.savinggoal"].search([("name", "=", name.capitalize())])
+        # Check if this name already exists for another record
+        name_exists = self.env["cashmind.savinggoal"].search([
+            ("name", "=", name.capitalize()),
+            ("user_id", "=", self.env.uid)]) if name else None
         if name_exists:
             if name == name_exists.name.lower():
                 raise ValidationError("Ya existe una meta de ahorro con este mismo nombre. Por favor, elija un nombre diferente.")
             
         # Check amount(Objetivo) is greater than 0
-        if vals["amount"] <= 0:
+        if "amount" in vals and vals["amount"] <= 0:
             raise ValidationError("El objetivo de ahorro debe ser mayor que 0.")
         
-        start_date = datetime.strptime(vals["start_date"], "%Y-%m-%d").date()
-        end_date = datetime.strptime(vals["limit_date"], "%Y-%m-%d").date()
+        start_date = datetime.strptime(vals["start_date"], "%Y-%m-%d").date() if "start_date" in vals else None
+        end_date = datetime.strptime(vals["limit_date"], "%Y-%m-%d").date() if "limit_date" in vals else None
         
         # Check start_date is not in the future
-        if start_date > datetime.today().date():
+        if start_date and start_date > datetime.today().date():
             raise ValidationError("La fecha de inicio no puede ser posterior a hoy.")
-        if end_date <= start_date:
+        if end_date and start_date and end_date <= start_date:
             raise ValidationError("La fecha de finalización debe ser posterior a la fecha de inicio.")
         
-        vals["name"] = name.capitalize()
+        vals["name"] = name.capitalize() if "name" in vals else None
         if note:
             vals["note"] = note
 
@@ -90,24 +95,21 @@ class SavingGoal(models.Model):
         notification(savinggoal, "Meta de ahorro creada",
                     "La meta de ahorro ha sido creada correctamente.",
                     "success")
-        
-        # # Recalculate dashboard stats
-        # user_id = savinggoal.user_id.id
-        # dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
-        # dashboards.recalculate_dashboard() 
 
         return savinggoal
     
     def write(self, vals):
         for rec in self:
-            # Cleaning the category name and description
+            # Cleaning the name and description
             new_name = clean_input(vals["name"], "title") if "name" in vals and vals["name"] else None
             new_name = new_name.lower() if new_name else None
             new_note = clean_input(vals["note"], "note") if "note" in vals and vals["note"] else None
 
-            # Check if this name already exists for another account
+            # Check if this name already exists for another record
             if new_name and new_name != rec.name.lower():
-                name_exists = self.env["cashmind.savinggoal"].search([("name", "=", new_name.capitalize())])
+                name_exists = self.env["cashmind.savinggoal"].search([
+                    ("name", "=", new_name.capitalize()),
+                    ("user_id", "=", self.env.uid)])
                 if name_exists:
                     if new_name == name_exists.name.lower():
                         raise ValidationError("Ya existe una cuenta de ahorro con este mismo nombre. Por favor, elija un nombre diferente.")
@@ -157,10 +159,6 @@ class SavingGoal(models.Model):
                 if not current_goal_status:
                     notification(rec, "Meta de ahorro completada", "FELICIDADES. Ha alcanzado el objetivo de su meta de ahorro.", "success")
 
-        # # Recalculate dashboard stats
-        # dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', rec.user_id.id)])
-        # dashboards.recalculate_dashboard()
-        
         return saving_goal
 
     def unlink(self):
@@ -181,9 +179,5 @@ class SavingGoal(models.Model):
         
         # user_id = self.user_id.id
         savinggoal = super().unlink()
-
-        # # Recalculate dashboard stats
-        # dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
-        # dashboards.recalculate_dashboard()
 
         return savinggoal
