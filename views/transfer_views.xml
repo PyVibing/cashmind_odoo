@@ -96,7 +96,7 @@
                                 <field name="source_account"/>
                             </div>
                             <div class="d-flex">
-                                <span>⬅️</span>
+                                <span>🎯</span>
                                 <field name="destination_account"/>
                             </div>
                         </footer>

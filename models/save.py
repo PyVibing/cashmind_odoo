@@ -25,7 +25,7 @@ class Save(models.Model):
     note = fields.Text(string="Notas")
     active = fields.Boolean(string="Activo", default=True)
     goal_savinggoal_account = fields.Monetary(string="Objetivo", currency_field="destination_currency_id", compute="_get_goal", store=False)
-
+    
     @api.depends("destination_savinggoal_account")
     def _get_goal(self):
         for rec in self:

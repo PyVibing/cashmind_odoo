@@ -457,9 +457,10 @@ class Dashboard(models.Model):
 
     # ------------- METHOD FOR RECALCULATING DASHBOARD STATS -------------
     # Recalculating will be manually called from other models (create(), write(), unlink())
-    def recalculate_dashboard(self):
+    def recalculate_dashboard(self, external_user_id = None):
         for dashboard in self:
-            user = dashboard.user_id
+            user = dashboard.user_id if not external_user_id else external_user_id
+            # external_user = external_user_id if external_user_id else None
             
             # External models
             budget = self.env['cashmind.budget'].search([('user_id', '=', user.id)])
@@ -472,4 +473,14 @@ class Dashboard(models.Model):
             dashboard.total_account = sum(account.mapped("balance")) if account else 0.00
             dashboard.total_savinggoal = sum(savinggoal.mapped("balance")) if savinggoal else 0.00            
         
-        
+            # # If it's called from the transfer_external model:
+            # # External models
+            # external_budget = self.env['cashmind.budget'].search([('user_id', '=', external_user.id)])
+            # external_account = self.env['cashmind.account'].search([('user_id', '=', external_user.id)])
+            # external_savinggoal = self.env['cashmind.savinggoal'].search([('user_id', '=', external_user.id)])
+
+            # # Recalculate totals of all time
+            # # This triggers the api.depends for the rest of the dashboard fields
+            # dashboard.total_budget = sum(external_budget.mapped("balance")) if budget else 0.00
+            # dashboard.total_account = sum(external_account.mapped("balance")) if account else 0.00
+            # dashboard.total_savinggoal = sum(external_savinggoal.mapped("balance")) if savinggoal else 0.00            

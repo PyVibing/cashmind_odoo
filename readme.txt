@@ -1,12 +1,22 @@
 💸 CashMind – Gestión Financiera Personal (módulo para Odoo)
 🤝 Autor: Desarrollado con 💻 y café ☕ por Jeffry Hernández Gutierrez
-🆕 Última versión: v2.1
+🆕 Última versión: v2.2
 
 
 **CashMind** es un módulo para Odoo diseñado para ayudarte a llevar un control claro, simple y visual de tus finanzas personales. Administra tus ingresos, gastos y cuentas con comodidad, directamente desde tu entorno Odoo favorito.
 
 ----------------------------------------------------------------------------------------------------
-🚀 Novedades en la Versión v2.1
+🚀 Novedades  y cambios en la Versión v2.2
+
+1- ➕ Agregado en la vista del form del modelo transfer_external, campo para seleccionar external_user_id a quien se va a transferir
+2- ⬆️ Modificada la vista dentro del modelo accounts a readonly (notebook Transferencias / Externas para que no permita crear un registro nuevo ni editar una transferencia externa recibida o enviada.
+3- ⬆️ Modificada vista kanban y list para que muestre el nombre del usuario externo que recibe la transferencia.
+4- ➖ Eliminada la opción de actualizar el saldo transferido a otros usuarios o cambiar la cuenta de destino. Tampoco es posible eliminar una transferencia hecha a un usuario externo.
+5- ✔️ Solucionado el bug que hacía que no se actualizara el dashboard del usuario externo al recibir una transferencia externa.
+
+----------------------------------------------------------------------------------------------------
+
+🚀 Novedades y cambios en la Versión v2.1
 
 Estas son las mejoras y nuevas funcionalidades de esta versión:
 
@@ -21,7 +31,7 @@ Estas son las mejoras y nuevas funcionalidades de esta versión:
 
 
 ----------------------------------------------------------------------------------------------------
-🚀 Novedades en la Versión v2.0
+🚀 Novedades y cambios en la Versión v2.0
 
 Estas son las mejoras y nuevas funcionalidades de esta versión:
 

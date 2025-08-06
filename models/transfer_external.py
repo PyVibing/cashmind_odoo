@@ -6,8 +6,9 @@ from ..utils import notification, update_balance, clean_input
 class Transfer_external(models.Model):
     _name = "cashmind.transfer_external"
 
-    user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", unique=True,
-                              default=lambda self: self.env.user)
+    user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", default=lambda self: self.env.user)
+    external_user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", 
+                                        domain="[('id', '!=', uid)]")
     name = fields.Char(string="Nombre", required=True)
     source_account = fields.Many2one("cashmind.account", string="Cuenta de origen", required=True, domain="[('user_id', '=', uid)]")
     source_currency_id = fields.Many2one("res.currency", string="Moneda", readonly=True, 
@@ -15,7 +16,8 @@ class Transfer_external(models.Model):
                                          default=lambda self: self._default_currency())
     available_source_balance = fields.Monetary(string="Balance", currency_field="source_currency_id", readonly=True,
                                                compute="_compute_source_availability")
-    destination_account = fields.Many2one("cashmind.account", string="Cuenta de destino", required=True, domain="[('user_id', '!=', uid)]")
+    destination_account = fields.Many2one("cashmind.account", string="Cuenta de destino", required=True, 
+                                          domain="[('user_id', '=', external_user_id)]")
     destination_currency_id = fields.Many2one("res.currency", string="Moneda", readonly=True, 
                                               store=True, compute="_compute_destination_currency")
     amount = fields.Monetary(string="Cantidad", currency_field="source_currency_id", required=True)
@@ -114,6 +116,11 @@ class Transfer_external(models.Model):
         dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
         dashboards.recalculate_dashboard()
 
+        # Recalculate external_user dashboard stats
+        external_user_id = transfer.external_user_id
+        ext_dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', external_user_id.id)])
+        ext_dashboards.recalculate_dashboard(external_user_id=external_user_id)
+
         return transfer
     
     def write(self, vals):
@@ -128,8 +135,14 @@ class Transfer_external(models.Model):
             new_source_account_id= vals.get("source_account", None)
             new_amount = vals.get("amount", None)
 
+            if new_amount and new_amount != current_amount:
+                raise ValidationError("No puede modificar la cantidad de una transferencia hecha a un usuario externo.")
+
             current_destination_account_id= rec.destination_account.id
             new_destination_account_id= vals.get("destination_account", None)
+
+            if new_destination_account_id and new_destination_account_id != current_destination_account_id:
+                raise ValidationError("No puede modificar la cuenta de destino de una transferencia hecha a un usuario externo.")
 
             # Cleaning the name and description
             new_name = clean_input(vals["name"], "title") if "name" in vals and vals["name"] else None
@@ -145,91 +158,26 @@ class Transfer_external(models.Model):
                     if new_name == name_exists.name.lower():
                         raise ValidationError("Ya existe una transferencia con este mismo nombre. Por favor, elija un nombre diferente.")
                     
-            # Check if amount is > 0
-            if new_source_account_id:
-                account_record = self.env["cashmind.account"].browse(new_source_account_id)
-            else:
-                account_record = rec.source_account
-            if new_amount is not None and new_amount <= 0:
-                raise ValidationError("La cantidad a transferir debe ser mayor que 0")
-            
             # Convert accounts_id to record
             current_source_account_record = rec.env["cashmind.account"].browse(current_source_account_id)
             current_destination_account_record = rec.env["cashmind.account"].browse(current_destination_account_id)
             if new_source_account_id:
                 new_source_account_record = rec.env["cashmind.account"].browse(new_source_account_id)
-            if new_destination_account_id:
-                new_destination_account_record = rec.env["cashmind.account"].browse(new_destination_account_id)
-
+            
             # Check different currencies for both accounts
-            if new_source_account_id and new_destination_account_id:
-                if new_source_account_record.currency_id != new_destination_account_record.currency_id:
-                    raise ValidationError("El tipo de moneda de la cuenta de origen y destino no pueden ser diferentes.")
-            elif not new_source_account_id and new_destination_account_id:
-                if current_source_account_record.currency_id != new_destination_account_record.currency_id:
-                    raise ValidationError("El tipo de moneda de la cuenta de origen y destino no pueden ser diferentes.")
-            elif new_source_account_id and not new_destination_account_id:
+            if new_source_account_id:
                 if new_source_account_record.currency_id != current_destination_account_record.currency_id:
                     raise ValidationError("El tipo de moneda de la cuenta de origen y destino no pueden ser diferentes.")
 
-            # Check available balance for source_account
-            available_balance = account_record.balance
-            # If only modifying the amount, and not any account (source or destination)
-            if not new_source_account_id and not new_destination_account_id:
-                available_balance += rec.amount
-                            
-            if "amount" in vals and vals["amount"] > available_balance:
-                raise ValidationError("No hay saldo suficiente en la cuenta de origen para realizar la operación.")
-            elif not "amount" in vals and rec.amount > available_balance:
-                raise ValidationError("No hay saldo suficiente en la cuenta de origen para realizar la operación.")
-                        
-            # If modifying the quantity (amount)
-            if new_amount:
-                # Calculate the difference between amounts (current and new)
-                difference = new_amount - current_amount
-
-                # If modifying the source_account 
-                if new_source_account_id:
-                    # Add current_amount back to current_source_account
-                    update_balance(current_source_account_record, current_amount)
-                    # Substract new_amount from new_source_account
-                    update_balance(new_source_account_record, new_amount * -1)
-                # If not modifying the source_account
-                else:
-                    # Update the balance in the source_account
-                    update_balance(current_source_account_record, difference * -1)
-                
-                # If modifying the destination_account
-                if new_destination_account_id:
-                    # Substract current_amount back from current_destination_account
-                    update_balance(current_destination_account_record, current_amount * -1)
-                    # Add new_amount to new_destination_account
-                    update_balance(new_destination_account_record, new_amount)
-                # If not modifying the destination_account
-                else:
-                    # Update the balance
-                    update_balance(current_destination_account_record, difference)
+            if new_source_account_id:
+                # Add current_amount back to current_source_account
+                update_balance(current_source_account_record, current_amount)
+                # Substract current_amount from new_source_account
+                update_balance(new_source_account_record, current_amount * -1)
             
-            else:
-                # If modifying the source_account 
-                if new_source_account_id:
-                    # Add current_amount back to current_source_account
-                    update_balance(current_source_account_record, current_amount)
-                    # Substract current_amount from new_source_account
-                    update_balance(new_source_account_record, current_amount * -1)
-                
-                # If modifying the destination_account
-                if new_destination_account_id:
-                    # Substract current_amount back from current_destination_account
-                    update_balance(current_destination_account_record, current_amount * -1)
-                    # Add current_amount to new_destination_account
-                    update_balance(new_destination_account_record, current_amount)
-
             source_account_changed = False if not new_source_account_id else new_source_account_id != current_source_account_id
-            destination_account_changed = False if not new_destination_account_id else new_destination_account_id != current_destination_account_id
-            amount_changed = False if not new_amount else new_amount != current_amount
-
-            if not source_account_changed and not destination_account_changed and not amount_changed:
+            
+            if not source_account_changed:
                 notification(rec, "Datos actualizados", "Se actualizaron correctamente los datos de esta transferencia.", "success")
             else:
                 notification(rec, "Saldo actualizado",
@@ -244,32 +192,17 @@ class Transfer_external(models.Model):
         transfer = super().write(vals)
 
         # Recalculate dashboard stats
-        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', rec.user_id.id)])
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', self.user_id.id)])
         dashboards.recalculate_dashboard()
+
+        # Recalculate external_user dashboard stats
+        ext_dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', self.external_user_id.id)])
+        ext_dashboards.recalculate_dashboard(external_user_id=self.external_user_id)
         
         return transfer
 
     def unlink(self):
         for rec in self:
-            source_account_record = rec.source_account
-            current_amount = rec.amount
-            destination_account_record = rec.destination_account
-            
-            # Update the amount in the source_account
-            update_balance(source_account_record, current_amount)
+            raise ValidationError("No puede eliminar una transferencia hecha a un usuario externo. Si prefiere, puede archivarla.")         
 
-            # Update the amount in the destination_account
-            update_balance(destination_account_record, current_amount * -1)
-                
-        notification(self, "Transferencia eliminada",
-                    "Se actualizó correctamente el saldo de las cuentas asociadas a esta transferencia.",
-                    "success")
-                
-        user_id = self.user_id.id
-        transfer = super().unlink()
-
-        # Recalculate dashboard stats
-        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
-        dashboards.recalculate_dashboard()
-
-        return transfer
+        return super().unlink()

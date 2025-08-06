@@ -109,7 +109,7 @@
                                 <page string="Externas">
                                     <notebook>
                                         <page string="Enviadas">
-                                            <field name="source_transfer_external_ids">
+                                            <field name="source_transfer_external_ids" readonly="1">
                                                 <list>
                                                     <field name="name" width="70"/>
                                                     <field name="amount" width="30"/>
@@ -121,7 +121,7 @@
                                             </field>
                                         </page>
                                         <page string="Recibidas">
-                                            <field name="destination_transfer_external_ids">
+                                            <field name="destination_transfer_external_ids" readonly="1">
                                                 <list>
                                                     <field name="name" width="70"/>
                                                     <field name="amount" width="30"/>

@@ -9,6 +9,7 @@
             <list>
                 <field name="name"/>
                 <field name="source_account"/>
+                <field name="external_user_id" string="Enviado a"/>
                 <field name="destination_account"/>
                 <field name="amount"/>
                 <field name="source_currency_id"/>
@@ -49,6 +50,7 @@
                         </group>
                         <group colspan="2">
                             <group>
+                                <field name="external_user_id" options="{'no_create': True}" string="Usuario*"/>
                                 <field name="destination_account" options="{'no_create': True}" string="Cuenta de destino*"/>
                             </group>
                         </group>
@@ -76,6 +78,7 @@
                 <field name="transfer_date"/>
                 <field name="source_account"/>
                 <field name="source_currency_id"/>
+                <field name="external_user_id"/>
                 <field name="destination_account"/>
 
                 <t t-name="card">
@@ -93,8 +96,10 @@
                                 <field name="source_account"/>
                             </div>
                             <div class="d-flex">
-                                <span>⬅️</span>
+                                <span>🎯</span>
                                 <field name="destination_account"/>
+                                <span style="margin-left: 5px;">(👤</span>
+                                <field name="external_user_id"/>)
                             </div>
                         </footer>
                     </div>
