@@ -15,6 +15,8 @@
                 <field name="total_income_month"/>
                 <field name="total_expense_month"/>                
                 <field name="total_transfer_month"/>
+                <field name="total_transfer_external_sent_month"/>
+                <field name="total_transfer_external_received_month"/>
                 <field name="total_save_month"/>
                 <field name="category_income_top1_name"/>
                 <field name="category_income_top1_value"/>
@@ -29,6 +31,8 @@
                 <field name="difference_income"/>
                 <field name="difference_save"/>
                 <field name="difference_transfer"/>
+                <field name="difference_transfer_ext_sent"/>
+                <field name="difference_transfer_ext_received"/>
                 <field name="difference_category_income_top1"/>
                 <field name="difference_category_expense_top1"/>
                 <field name="difference_save_top1"/>
@@ -37,387 +41,316 @@
                 <templates>
                     <t t-name="card" class="w-100">
 
-                        <!-- WELCOME TEXT #1 -->
-                        <div class="badge mb-3 p-3 w-100 text-start" style="display: block;">
-                            <h4 class="text-primary fw-bold fs-1 mb-2">¡Bienvenido a CashMind!</h4>
-                            <p class="card-text fs-5 text-muted mb-0">
-                                Tu espacio personal para organizar tus finanzas de forma inteligente y sin complicaciones
-                            </p>
-                        </div>
+                        <!-- BANNER PRINCIPAL -->
+                        <div class="p-5 mb-5 rounded-4 shadow-sm d-flex align-items-center justify-content-between position-relative overflow-hidden"
+                            style="min-height: 180px; background: url('/cashmind/static/src/img/banner-finanzas.jpg') center/cover no-repeat;">
 
-                        <!-- ROW 1 -->
-                        <div class="d-flex flex-wrap w-100 p-2 mb-5" style="gap: 1%;">
+                            <!-- Capa de oscurecimiento -->
+                            <div style="position: absolute; inset: 0; background-color: rgba(0, 0, 180, 0.4);"></div>
 
-                            <!-- CARD 1 -->
-                            <div class="card p-3" style="width: 24%;">
-                                <div class="d-flex flex-wrap w-100">
-                                    <!-- Columna izquierda: ícono -->
-                                    <div class="w-40 d-flex justify-content-center align-items-center">
-                                        <i class="fa fa-tag fa-6x text-primary"></i>
-                                    </div>
-
-                                    <!-- Columna derecha -->
-                                    <div class="w-60 ms-4 d-flex flex-column flex-wrap">
-                                        <!-- Parte superior: Header -->
-                                        <div>
-                                            <h3>Saldo total</h3>
-                                        </div>
-
-                                        <!-- Parte inferior -->
-                                        <div class="d-flex flex-column">
-                                            <div class="d-flex mt-1">
-                                                <div class="d-flex flex-wrap">
-                                                    <span class="badge text-bg-primary" style="font-size: 2.5rem;">
-                                                        <field name="total_amount"/>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <!-- Texto de bienvenida -->
+                            <div class="position-relative">
+                                <h1 class="fw-bold mb-2" style="font-size: 2.7rem; letter-spacing: 0.8px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #E0F2F1;">
+                                    Bienvenido a CashMind
+                                </h1>
+                                <p class="mb-0" style="font-size: 1.15rem; font-weight: 500; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white;">
+                                    Organiza tus finanzas de forma <span style="font-weight: 800; color: #EEF5DB;">inteligente</span> y sin complicaciones.
+                                </p>
                             </div>
 
+                            <!-- Cantidad total -->
+                            <div class="text-end position-relative">
+                                <span class="d-block fw-semibold mb-2" style="color: white; font-size: 1rem; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                    Saldo total
+                                </span>
+                                <span class="badge fs-1 mb-1" style="background-color: #EEF5DB; color:black; font-weight: 600; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                    <field name="total_amount"/>
+                                </span>
+                            </div>
                         </div>
+
+
+
+
+
+
                         
                         <!-- DIVIDER TEXT #1 -->
                         <div>
-                            <div class="badge text-bg-primary d-flex align-items-center justify-content-start ms-2 me-2" style="height: 20px; width: 24%;">
-                                <i class="fa fa-usd"></i>
-                                <span class="text-white fs-4 ms-3 mb-1">¿Dónde está mi dinero?</span>
+                            <div class="d-flex align-items-center ms-2 me-2 mb-2" style="height: 40px; width: 100%; max-width: 400px; background-color: #e6f0ff; border-radius: 12px; padding: 0 12px;">
+                                <div style="background-color: #4a69ad; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa fa-usd" style="color: white; font-size: 1rem;"></i>
+                                </div>
+
+                                <span class="ms-3 fw-semibold" style="color: #4a69ad; font-size: 1.1rem; user-select: none;">
+                                    ¿Dónde está mi dinero?
+                                </span>
                             </div>
                         </div>
 
+
                         <!-- ROW 2 -->
-                        <div class="d-flex flex-wrap w-100 p-2 mb-5" style="gap: 1%;">
+                        <div class="d-flex flex-wrap w-100 p-2 mb-5 gap-3">
 
                             <!-- CARD 1 -->
-                            <div class="card p-3" style="width: 24%;">
-                                <div class="d-flex w-100">
-                                    <!-- Columna izquierda: ícono -->
-                                    <div class="w-40 d-flex justify-content-center align-items-center">
-                                        <i class="fa fa-credit-card-alt fa-5x" style="color:olive;"></i>
+                            <div class="card p-4 rounded-4 border-0 shadow-sm" style="width: 24%; background-color: #fefefe;">
+                                <div class="d-flex align-items-center">
+                                    
+                                    <div class="me-3">
+                                        <div class="rounded-3 d-flex justify-content-center align-items-center"
+                                            style="width: 60px; height: 60px; background-color: #fff4cc;">
+                                            <i class="fa fa-credit-card-alt" style="font-size: 1.5rem; color: #e0a800;"></i>
+                                        </div>
                                     </div>
 
-                                    <!-- Columna derecha -->
-                                    <div class="w-60 ms-4 d-flex flex-column">
-                                        <!-- Parte superior: Header -->
-                                        <div>
-                                            <h3>Disponible en cuenta</h3>
-                                        </div>
-
-                                        <!-- Parte inferior -->
-                                        <div class="d-flex flex-column">
-                                            <div class="d-flex mt-1">
-                                                <div>
-                                                    <span class="badge fs-2" style="background-color:olive; color:white;">
-                                                        <t t-esc="record.total_account.value"/>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div class="d-flex flex-column">
+                                        <span class="text-muted fw-semibold" style="font-size: 0.9rem;">Disponible en cuenta</span>
+                                        <span class="fw-bold" style="font-size: 1.9rem; color: #1b1f22;">
+                                            <t t-esc="record.total_account.value"/>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- CARD 2 -->
-                            <div class="card p-3" style="width: 24%;">
-                                <div class="d-flex w-100">
-                                    <!-- Columna izquierda: ícono -->
-                                    <div class="w-40 d-flex justify-content-center align-items-center">
-                                        <i class="fa fa-money fa-6x" style="color:brown;"></i>
-                                    </div>
-
-                                    <!-- Columna derecha -->
-                                    <div class="w-60 ms-4 d-flex flex-column">
-                                        <!-- Parte superior: Header -->
-                                        <div>
-                                            <h3>En presupuestos</h3>
-                                        </div>
-
-                                        <!-- Parte inferior -->
-                                        <div class="d-flex flex-column">
-                                            <div class="d-flex mt-1">
-                                                <div>
-                                                    <span class="badge fs-2" style="background-color:brown; color:white;">
-                                                        <t t-esc="record.total_budget.value"/>
-                                                    </span>
-                                                </div>
-                                            </div>
+                            <div class="card p-4 rounded-4 border-0 shadow-sm" style="width: 24%; background-color: #fefefe;">
+                                <div class="d-flex align-items-center">
+                                    
+                                    <div class="me-3">
+                                        <div class="rounded-3 d-flex justify-content-center align-items-center"
+                                            style="width: 60px; height: 60px; background-color: #fff1e6;">
+                                            <i class="fa fa-money" style="font-size: 1.5rem; color: #d35400;"></i>
                                         </div>
                                     </div>
-                                </div>
-                            </div>                            
 
-                            <!-- CARD 3 -->
-                            <div class="card p-3" style="width: 24%;">
-                                <div class="d-flex w-100">
-                                    <!-- Columna izquierda: ícono -->
-                                    <div class="w-40 d-flex justify-content-center align-items-center">
-                                        <i class="fa fa-bullseye fa-6x" style="color:navy;"></i>
-                                    </div>
-
-                                    <!-- Columna derecha -->
-                                    <div class="w-60 ms-4 d-flex flex-column">
-                                        <!-- Parte superior: Header -->
-                                        <div>
-                                            <h3>En metas de ahorro</h3>
-                                        </div>
-
-                                        <!-- Parte inferior -->
-                                        <div class="d-flex flex-column">
-                                            <div class="d-flex mt-1">
-                                                <div>
-                                                    <span class="badge fs-2" style="background-color:navy; color:white;">
-                                                        <t t-esc="record.total_savinggoal.value"/>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div class="d-flex flex-column">
+                                        <span class="text-muted fw-semibold" style="font-size: 0.9rem;">En presupuestos</span>
+                                        <span class="fw-bold" style="font-size: 1.9rem; color: #1b1f22;">
+                                            <t t-esc="record.total_budget.value"/>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
+                            
+                            <!-- CARD 3-->
+                            <div class="card p-4 rounded-4 border-0 shadow-sm" style="width: 24%; background-color: #fefefe;">
+                                <div class="d-flex align-items-center">
+                                    
+                                    <div class="me-3">
+                                        <div class="rounded-3 d-flex justify-content-center align-items-center"
+                                            style="width: 60px; height: 60px; background-color: #e4eaff;">
+                                            <i class="fa fa-bullseye" style="font-size: 1.5rem; color: #2c3e94;"></i>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex flex-column">
+                                        <span class="text-muted fw-semibold" style="font-size: 0.9rem;">En metas de ahorro</span>
+                                        <span class="fw-bold" style="font-size: 1.9rem; color: #1b1f22;">
+                                            <t t-esc="record.total_savinggoal.value"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
 
                         </div>
 
                         <!-- DIVIDER TEXT #2 -->
                         <div>
-                            <div class="badge text-bg-primary d-flex align-items-center justify-content-start ms-2 me-2" style="height: 20px; width: 24%;">
-                                <i class="fa fa-line-chart"></i>
-                                <span class="text-white fs-4 ms-3 mb-1">Estadísticas mensuales</span>
+                            <div class="d-flex align-items-center ms-2 me-2 mb-2" style="height: 40px; width: 24%; background-color: #e6f0ff; border-radius: 12px; padding: 0 12px;">
+                                <div style="background-color: #4a69ad; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa fa-line-chart" style="color: white; font-size: 1rem;"></i>
+                                </div>
+
+                                <span class="ms-3 fw-semibold" style="color: #4a69ad; font-size: 1.1rem; user-select: none;">
+                                    Estadísticas mensuales (mov. internos)
+                                </span>
                             </div>
                         </div>
 
+
                         <!-- ROW 3 -->
-                        <div class="d-flex flex-wrap w-100 p-2" style="gap: 1%;">
+                        <div class="d-flex flex-wrap w-100 p-2 gap-3">
                             
                             <!-- CARD 1 -->
-                            <div class="card p-3" style="width: 24%;">
-                                <div class="d-flex w-100">
-                                    <!-- Columna izquierda: ícono -->
-                                    <div class="w-40 d-flex justify-content-center align-items-center">
-                                        <i class="fa fa-minus-square fa-5x text-danger"></i>
+                            <div class="card p-4 rounded-4 border-0 shadow-sm" style="width: 24%; background-color: #fefefe;">
+                                <div class="d-flex align-items-center">
+
+                                    <div class="me-3">
+                                        <div class="rounded-3 d-flex justify-content-center align-items-center"
+                                            style="width: 60px; height: 60px; background-color: #fdecea;">
+                                            <i class="fa fa-minus-square text-danger" style="font-size: 1.5rem;"></i>
+                                        </div>
                                     </div>
 
-                                    <!-- Columna derecha -->
-                                    <div class="w-60 ms-4 d-flex flex-column">
-                                        <!-- Parte superior: Header -->
-                                        <div>
-                                            <h3>Total de gastos</h3>
-                                        </div>
+                                    <div class="flex-grow-1 d-flex flex-column">
+                                        <span class="text-muted fw-semibold" style="font-size: 0.9rem; line-height: 1.1;">Total de gastos</span>
+                                        <div class="d-flex align-items-center" style="line-height: 1;">
+                                            <span class="fw-bold mt-2" style="font-size: 1.9rem; color: #1b1f22;">
+                                                <t t-esc="record.total_expense_month.value"/>
+                                            </span>
 
-                                        <!-- Parte inferior -->
-                                        <div class="d-flex flex-column">
-                                            <div class="d-flex mt-1">
-                                                <div>
-                                                    <span class="badge text-bg-danger fs-2">
-                                                        <t t-esc="record.total_expense_month.value"/>
-                                                    </span>
-                                                </div>
-                                                <div class="d-flex">
-                                                    <t t-if="record.difference_expense.raw_value > 0">
-                                                        <i class="fa fa-sort-asc fa-2x ms-4" style="color:red;"></i>
-                                                    </t>
-                                                    <t t-elif="record.difference_expense.raw_value == 0">
-                                                        <i class="fa fa-sort fa-2x ms-4 text-muted"></i>
-                                                    </t>
-                                                    <t t-else="">
-                                                        <i class="fa fa-sort-desc fa-2x ms-4" style="color:green;"></i>
-                                                    </t>                                                    
-                                                </div>
-                                            </div>
-                                            <div>
+                                            <div class="d-flex align-items-center ms-3" style="font-size: 1.1rem; font-weight: 600;">
                                                 <t t-if="record.difference_expense.raw_value > 0">
-                                                    <span class="small" style="color:red;">
-                                                        <field name="difference_expense"/> %
-                                                    </span>
+                                                    <i class="fa fa-sort-asc" style="color: red; margin-right: 6px;"></i>
                                                 </t>
                                                 <t t-elif="record.difference_expense.raw_value == 0">
-                                                    <span class="small text-muted">
-                                                        <field name="difference_expense"/> %
-                                                    </span>
+                                                    <i class="fa fa-sort text-muted" style="margin-right: 6px;"></i>
                                                 </t>
                                                 <t t-else="">
-                                                    <span class="small" style="color:green;">
-                                                        <field name="difference_expense"/> %
-                                                    </span>
+                                                    <i class="fa fa-sort-desc" style="color: green; margin-right: 6px;"></i>
                                                 </t>
-                                                <span class="small text-muted"> respecto al mes pasado </span>
                                             </div>
                                         </div>
+                                        <span style="font-size: 0.8rem;">
+                                            <t t-if="record.difference_expense.raw_value > 0">
+                                                <span style="color: red;"><field name="difference_expense"/> %</span>
+                                            </t>
+                                            <t t-elif="record.difference_expense.raw_value == 0">
+                                                <span class="text-muted"><field name="difference_expense"/> %</span>
+                                            </t>
+                                            <t t-else="">
+                                                <span style="color: green;"><field name="difference_expense"/> %</span>
+                                            </t>
+                                            <span class="text-muted"> vs. mes pasado</span>
+                                        </span>
                                     </div>
-                                </div>
-                            </div>                           
 
-                            <!-- CARD 2 -->
-                            <div class="card p-3" style="width: 24%;">
-                                <div class="d-flex w-100">
-                                    <!-- Columna izquierda: ícono -->
-                                    <div class="w-40 d-flex justify-content-center align-items-center">
-                                        <i class="fa fa-plus-square fa-5x" style="color:green;"></i>
-                                    </div>
-
-                                    <!-- Columna derecha -->
-                                    <div class="w-60 ms-4 d-flex flex-column">
-                                        <!-- Parte superior: Header -->
-                                        <div>
-                                            <h3>Total de ingresos</h3>
-                                        </div>
-
-                                        <!-- Parte inferior -->
-                                        <div class="d-flex flex-column">
-                                            <div class="d-flex mt-1">
-                                                <div>
-                                                    <span class="badge fs-2" style="background-color:green; color:white;">
-                                                        <t t-esc="record.total_income_month.value"/>
-                                                    </span>
-                                                </div>
-                                                <div class="d-flex">
-                                                    <t t-if="record.difference_income.raw_value > 0">
-                                                        <i class="fa fa-sort-asc fa-2x ms-4" style="color:green;"></i>
-                                                    </t>
-                                                    <t t-elif="record.difference_income.raw_value == 0">
-                                                        <i class="fa fa-sort fa-2x ms-4 text-muted"></i>
-                                                    </t>
-                                                    <t t-else="">
-                                                        <i class="fa fa-sort-desc fa-2x ms-4" style="color:red;"></i>
-                                                    </t> 
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <t t-if="record.difference_income.raw_value > 0">
-                                                    <span class="small" style="color:green;">
-                                                        <field name="difference_income"/> %
-                                                    </span>
-                                                </t>
-                                                <t t-elif="record.difference_income.raw_value == 0">
-                                                    <span class="small text-muted">
-                                                        <field name="difference_income"/> %
-                                                    </span>
-                                                </t>
-                                                <t t-else="">
-                                                    <span class="small" style="color:red;">
-                                                        <field name="difference_income"/> %
-                                                    </span>
-                                                </t>
-                                                <span class="small text-muted"> respecto al mes pasado </span>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
 
-                            <!-- CARD 3 -->
-                            <div class="card p-3" style="width: 24%;">
-                                <div class="d-flex w-100">
-                                    <!-- Columna izquierda: ícono -->
-                                    <div class="w-40 d-flex justify-content-center align-items-center">
-                                        <i class="fa fa-check-square fa-5x" style="color:#F55883;"></i>
+                            <!-- CARD 2 -->
+                            <div class="card p-4 rounded-4 border-0 shadow-sm" style="width: 24%; background-color: #fefefe;">
+                                <div class="d-flex align-items-center">
+
+                                    <div class="me-3">
+                                        <div class="rounded-3 d-flex justify-content-center align-items-center"
+                                            style="width: 60px; height: 60px; background-color: #e6f4ea;">
+                                            <i class="fa fa-plus-square" style="font-size: 1.5rem; color: green;"></i>
+                                        </div>
                                     </div>
 
-                                    <!-- Columna derecha -->
-                                    <div class="w-60 ms-4 d-flex flex-column">
-                                        <!-- Parte superior: Header -->
-                                        <div>
-                                            <h3>Total ahorrado</h3>
-                                        </div>
+                                    <div class="flex-grow-1 d-flex flex-column">
+                                        <span class="text-muted fw-semibold" style="font-size: 0.9rem; line-height: 1.1;">Total de ingresos</span>
+                                        <div class="d-flex align-items-center" style="line-height: 1;">
+                                            <span class="fw-bold mt-2" style="font-size: 1.9rem; color: #1b1f22;">
+                                                <t t-esc="record.total_income_month.value"/>
+                                            </span>
 
-                                        <!-- Parte inferior -->
-                                        <div class="d-flex flex-column">
-                                            <div class="d-flex mt-1">
-                                                <div>
-                                                    <span class="badge fs-2" style="background-color:#F55883; color:white;">
-                                                        <t t-esc="record.total_save_month.value"/>
-                                                    </span>
-                                                </div>
-                                                <div class="d-flex">
-                                                    <t t-if="record.difference_save.raw_value > 0">
-                                                        <i class="fa fa-sort-asc fa-2x ms-4" style="color:green;"></i>
-                                                    </t>
-                                                    <t t-elif="record.difference_save.raw_value == 0">
-                                                        <i class="fa fa-sort fa-2x ms-4 text-muted"></i>
-                                                    </t>
-                                                    <t t-else="">
-                                                        <i class="fa fa-sort-desc fa-2x ms-4" style="color:red;"></i>
-                                                    </t> 
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <t t-if="record.difference_save.raw_value > 0">
-                                                    <span class="small" style="color:green;">
-                                                        <field name="difference_save"/> %
-                                                    </span>
+                                            <div class="d-flex align-items-center ms-3" style="font-size: 1.1rem; font-weight: 600;">
+                                                <t t-if="record.difference_income.raw_value > 0">
+                                                    <i class="fa fa-sort-asc" style="color: green; margin-right: 6px;"></i>
                                                 </t>
-                                                <t t-elif="record.difference_save.raw_value == 0">
-                                                    <span class="small text-muted">
-                                                        <field name="difference_save"/> %
-                                                    </span>
+                                                <t t-elif="record.difference_income.raw_value == 0">
+                                                    <i class="fa fa-sort text-muted" style="margin-right: 6px;"></i>
                                                 </t>
                                                 <t t-else="">
-                                                    <span class="small" style="color:red;">
-                                                        <field name="difference_save"/> %
-                                                    </span>
+                                                    <i class="fa fa-sort-desc" style="color: red; margin-right: 6px;"></i>
                                                 </t>
-                                                <span class="small text-muted"> respecto al mes pasado </span>
                                             </div>
                                         </div>
+                                        <span style="font-size: 0.8rem;">
+                                            <t t-if="record.difference_income.raw_value > 0">
+                                                <span style="color: green;"><field name="difference_income"/> %</span>
+                                            </t>
+                                            <t t-elif="record.difference_income.raw_value == 0">
+                                                <span class="text-muted"><field name="difference_income"/> %</span>
+                                            </t>
+                                            <t t-else="">
+                                                <span style="color: red;"><field name="difference_income"/> %</span>
+                                            </t>
+                                            <span class="text-muted"> vs. mes pasado</span>
+                                        </span>
+                                    </div>
+
+                                </div>
+                            </div>
+                            
+                            <!-- CARD 3 -->
+                            <div class="card p-4 rounded-4 border-0 shadow-sm" style="width: 24%; background-color: #fefefe;">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <div class="rounded-3 d-flex justify-content-center align-items-center"
+                                            style="width: 60px; height: 60px; background-color: #fde7ee;">  <!-- Fondo rosa clarito -->
+                                            <i class="fa fa-check-square" style="font-size: 1.5rem; color: #F55883;"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 d-flex flex-column">
+                                        <span class="text-muted fw-semibold" style="font-size: 0.9rem; line-height: 1.1;">Total ahorrado</span>
+                                        <div class="d-flex align-items-center" style="line-height: 1;">
+                                            <span class="fw-bold mt-2" style="font-size: 1.9rem; color: #1b1f22;">
+                                                <t t-esc="record.total_save_month.value"/>
+                                            </span>
+                                            <div class="d-flex align-items-center ms-3" style="font-size: 1.1rem; font-weight: 600;">
+                                                <t t-if="record.difference_save.raw_value > 0">
+                                                    <i class="fa fa-sort-asc" style="color: green; margin-right: 6px;"></i>
+                                                </t>
+                                                <t t-elif="record.difference_save.raw_value == 0">
+                                                    <i class="fa fa-sort text-muted" style="margin-right: 6px;"></i>
+                                                </t>
+                                                <t t-else="">
+                                                    <i class="fa fa-sort-desc" style="color: red; margin-right: 6px;"></i>
+                                                </t>
+                                            </div>
+                                        </div>
+                                        <span style="font-size: 0.8rem;">
+                                            <t t-if="record.difference_save.raw_value > 0">
+                                                <span style="color: green;"><field name="difference_save"/> %</span>
+                                            </t>
+                                            <t t-elif="record.difference_save.raw_value == 0">
+                                                <span class="text-muted"><field name="difference_save"/> %</span>
+                                            </t>
+                                            <t t-else="">
+                                                <span style="color: red;"><field name="difference_save"/> %</span>
+                                            </t>
+                                            <span class="text-muted"> vs. mes pasado</span>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- CARD 4 -->
-                            <div class="card p-3" style="width: 24%;">
-                                <div class="d-flex w-100">
-                                    <!-- Columna izquierda: ícono -->
-                                    <div class="w-40 d-flex justify-content-center align-items-center">
-                                        <i class="fa fa-exchange fa-5x" style="color:purple;"></i>
+                            <div class="card p-4 rounded-4 border-0 shadow-sm" style="width: 24%; background-color: #fefefe;">
+                                <div class="d-flex align-items-center">
+
+                                    <div class="me-3">
+                                        <div class="rounded-3 d-flex justify-content-center align-items-center"
+                                            style="width: 60px; height: 60px; background-color: #f3e8fa;">
+                                            <i class="fa fa-exchange" style="font-size: 1.5rem; color: purple;"></i>
+                                        </div>
                                     </div>
 
-                                    <!-- Columna derecha -->
-                                    <div class="w-60 ms-4 d-flex flex-column">
-                                        <!-- Parte superior: Header -->
-                                        <div>
-                                            <h3>Transferido entre cuentas</h3>
-                                        </div>
+                                    <div class="flex-grow-1 d-flex flex-column">
+                                        <span class="text-muted fw-semibold" style="font-size: 0.9rem; line-height: 1.1;">Transferido entre mis cuentas</span>
+                                        <div class="d-flex align-items-center" style="line-height: 1;">
+                                            <span class="fw-bold mt-2" style="font-size: 1.9rem; color: 1b1f22;">
+                                                <t t-esc="record.total_transfer_month.value"/>
+                                            </span>
 
-                                        <!-- Parte inferior -->
-                                        <div class="d-flex flex-column">
-                                            <div class="d-flex mt-1">
-                                                <div>
-                                                    <span class="badge fs-2" style="background-color:purple; color:white;">
-                                                        <t t-esc="record.total_transfer_month.value"/>
-                                                    </span>
-                                                </div>
-                                                <div class="d-flex">
-                                                    <t t-if="record.difference_transfer.raw_value > 0">
-                                                        <i class="fa fa-sort-asc fa-2x ms-4" style="color:green;"></i>
-                                                    </t>
-                                                    <t t-elif="record.difference_transfer.raw_value == 0">
-                                                        <i class="fa fa-sort fa-2x ms-4 text-muted"></i>
-                                                    </t>
-                                                    <t t-else="">
-                                                        <i class="fa fa-sort-desc fa-2x ms-4" style="color:red;"></i>
-                                                    </t> 
-                                                </div>
-                                            </div>
-                                            <div>
+                                            <div class="d-flex align-items-center ms-3" style="font-size: 1.1rem; font-weight: 600;">
                                                 <t t-if="record.difference_transfer.raw_value > 0">
-                                                    <span class="small" style="color:green;">
-                                                        <field name="difference_transfer"/> %
-                                                    </span>
+                                                    <i class="fa fa-sort-asc" style="color: green; margin-right: 6px;"></i>
                                                 </t>
                                                 <t t-elif="record.difference_transfer.raw_value == 0">
-                                                    <span class="small text-muted">
-                                                        <field name="difference_transfer"/> %
-                                                    </span>
+                                                    <i class="fa fa-sort text-muted" style="margin-right: 6px;"></i>
                                                 </t>
                                                 <t t-else="">
-                                                    <span class="small" style="color:red;">
-                                                        <field name="difference_transfer"/> %
-                                                    </span>
+                                                    <i class="fa fa-sort-desc" style="color: red; margin-right: 6px;"></i>
                                                 </t>
-                                                <span class="small text-muted"> respecto al mes pasado </span>
                                             </div>
                                         </div>
+                                        <span style="font-size: 0.8rem;">
+                                            <t t-if="record.difference_transfer.raw_value > 0">
+                                                <span style="color: green;"><field name="difference_transfer"/> %</span>
+                                            </t>
+                                            <t t-elif="record.difference_transfer.raw_value == 0">
+                                                <span class="text-muted"><field name="difference_transfer"/> %</span>
+                                            </t>
+                                            <t t-else="">
+                                                <span style="color: red;"><field name="difference_transfer"/> %</span>
+                                            </t>
+                                            <span class="text-muted"> vs. mes pasado</span>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -425,10 +358,10 @@
                         </div>
 
                         <!-- ROW 4 -->
-                        <div class="d-flex flex-wrap w-100 p-2" style="gap: 1%;"> 
+                        <div class="d-flex flex-wrap w-100 ps-2 mb-5 gap-3"> 
                             
                             <!-- CARD 1 -->
-                            <div class="card p-2 d-flex flex-row align-items-center justify-content-between" style="width: 24%; height: 80px;">
+                            <div class="card p-2 d-flex flex-row align-items-center justify-content-between rounded-4 border-0 shadow-sm" style="width: 24%; height: 80px;">
                                 
                                 <div class="d-flex align-items-center">
                                     <i class="fa fa-tag fa-2x me-1 text-danger"></i>
@@ -442,7 +375,7 @@
 
                                 <div class="d-flex flex-column align-items-end">
                                     <div class="d-flex align-items-center">
-                                        <span class="badge fs-3 text-bg-danger">
+                                        <span class="fs-3">
                                             <field name="category_expense_top1_value"/>
                                         </span>
                                         <t t-if="record.difference_category_expense_top1.raw_value &lt; 0">
@@ -455,7 +388,7 @@
                                             <i class="fa fa-sort-asc ms-2 fs-4" style="color:red;"></i>
                                         </t>
                                     </div>
-                                    <div>
+                                    <div style="font-size: 0.8rem;">
                                         <t t-if="record.difference_category_expense_top1.raw_value &lt; 0">
                                             <span class="small" style="color: green;">
                                                 <field name="difference_category_expense_top1"/> %
@@ -471,13 +404,13 @@
                                                 <field name="difference_category_expense_top1"/> %
                                             </span>
                                         </t>
-                                        <span class="small text-muted">  respecto al mes pasado </span>
+                                        <span class="text-muted"> vs. mes pasado </span>
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- CARD 2 -->
-                            <div class="card p-2 d-flex flex-row align-items-center justify-content-between" style="width: 24%; height: 80px;">
+                            <div class="card p-2 d-flex flex-row align-items-center justify-content-between rounded-4 border-0 shadow-sm" style="width: 24%; height: 80px;">
                                 
                                 <div class="d-flex align-items-center">
                                     <i class="fa fa-tag fa-2x me-1" style="color:green;"></i>
@@ -491,7 +424,7 @@
 
                                 <div class="d-flex flex-column align-items-end">
                                     <div class="d-flex align-items-center">
-                                        <span class="badge fs-3" style="background-color:green; color:white;">
+                                        <span class="fs-3">
                                             <field name="category_income_top1_value"/>
                                         </span>
                                         <t t-if="record.difference_category_income_top1.raw_value &lt; 0">
@@ -520,13 +453,13 @@
                                                 <field name="difference_category_income_top1"/> %
                                             </span>
                                         </t>
-                                        <span class="small text-muted">  respecto al mes pasado </span>
+                                        <span class="small text-muted"> vs. mes pasado </span>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- CARD 3 -->
-                            <div class="card p-2 d-flex flex-row align-items-center justify-content-between" style="width: 24%; height: 80px;">
+                            <div class="card p-2 d-flex flex-row align-items-center justify-content-between rounded-4 border-0 shadow-sm" style="width: 24%; height: 80px;">
                                 
                                 <div class="d-flex align-items-center">
                                     <i class="fa fa-tag fa-2x me-1" style="color:#F55883;"></i>
@@ -540,7 +473,7 @@
 
                                 <div class="d-flex flex-column align-items-end">
                                     <div class="d-flex align-items-center">
-                                        <span class="badge fs-3" style="background-color:#F55883; color:white;">
+                                        <span class="fs-3">
                                             <field name="save_top1_value"/>
                                         </span>
                                     </div>
@@ -548,13 +481,13 @@
                                         <span class="small text-muted">
                                             <field name="difference_save_top1"/> %
                                         </span>
-                                        <span class="small text-muted">  respecto al total del mes </span>
+                                        <span class="small text-muted"> vs. total del mes </span>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- CARD 4 -->
-                            <div class="card p-2 d-flex flex-row align-items-center justify-content-between" style="width: 24%; height: 80px;">
+                            <div class="card p-2 d-flex flex-row align-items-center justify-content-between rounded-4 border-0 shadow-sm" style="width: 24%; height: 80px;">
                                 
                                 <div class="d-flex align-items-center">
                                     <i class="fa fa-tag fa-2x me-1" style="color:purple;"></i>
@@ -568,7 +501,7 @@
 
                                 <div class="d-flex flex-column align-items-end">
                                     <div class="d-flex align-items-center">
-                                        <span class="badge fs-3" style="background-color:purple; color:white;">
+                                        <span class="fs-3">
                                             <field name="transfer_top1_value"/>
                                         </span>
                                     </div>
@@ -576,12 +509,122 @@
                                         <span class="small text-muted">
                                             <field name="difference_transfer_top1"/> %
                                         </span>
-                                        <span class="small text-muted">  respecto al total del mes </span>
+                                        <span class="small text-muted"> vs. total del mes </span>
                                     </div>
                                 </div>
                             </div>
 
                         </div>
+
+                        <!-- DIVIDER TEXT #3 -->
+                        <div>
+                            <div class="d-flex align-items-center ms-2 me-2 mb-2" style="height: 40px; width: 24%; background-color: #e6f0ff; border-radius: 12px; padding: 0 12px;">
+                                <div style="background-color: #4a69ad; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa fa-line-chart" style="color: white; font-size: 1rem;"></i>
+                                </div>
+
+                                <span class="ms-3 fw-semibold" style="color: #4a69ad; font-size: 1.1rem; user-select: none;">
+                                    Estadísticas mensuales (mov. externos)
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- ROW 5 -->
+                        <div class="d-flex flex-wrap w-100 p-2 gap-3">
+                            <!-- CARD 1 -->
+                            <div class="card p-4 rounded-4 border-0 shadow-sm" style="width: 24%; background-color: #fefefe;">
+                                <div class="d-flex align-items-center">
+
+                                    <div class="me-3">
+                                        <div class="rounded-3 d-flex justify-content-center align-items-center"
+                                            style="width: 60px; height: 60px; background-color: #f3e8fa;">
+                                            <i class="fa fa-sign-out" style="font-size: 1.5rem; color: purple;"></i>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex-grow-1 d-flex flex-column">
+                                        <span class="text-muted fw-semibold" style="font-size: 0.9rem; line-height: 1.1;">Transferido a cuentas externas</span>
+                                        <div class="d-flex align-items-center" style="line-height: 1;">
+                                            <span class="fw-bold mt-2" style="font-size: 1.9rem; color: 1b1f22;">
+                                                <t t-esc="record.total_transfer_external_sent_month.value"/>
+                                            </span>
+
+                                            <div class="d-flex align-items-center ms-3" style="font-size: 1.1rem; font-weight: 600;">
+                                                <t t-if="record.difference_transfer_ext_sent.raw_value > 0">
+                                                    <i class="fa fa-sort-asc" style="color: red; margin-right: 6px;"></i>
+                                                </t>
+                                                <t t-elif="record.difference_transfer_ext_sent.raw_value == 0">
+                                                    <i class="fa fa-sort text-muted" style="margin-right: 6px;"></i>
+                                                </t>
+                                                <t t-else="">
+                                                    <i class="fa fa-sort-desc" style="color: green; margin-right: 6px;"></i>
+                                                </t>
+                                            </div>
+                                        </div>
+                                        <span style="font-size: 0.8rem;">
+                                            <t t-if="record.difference_transfer_ext_sent.raw_value > 0">
+                                                <span style="color: red;"><field name="difference_transfer_ext_sent"/> %</span>
+                                            </t>
+                                            <t t-elif="record.difference_transfer_ext_sent.raw_value == 0">
+                                                <span class="text-muted"><field name="difference_transfer_ext_sent"/> %</span>
+                                            </t>
+                                            <t t-else="">
+                                                <span style="color: green;"><field name="difference_transfer_ext_sent"/> %</span>
+                                            </t>
+                                            <span class="text-muted"> vs. mes pasado</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CARD 2 -->
+                            <div class="card p-4 rounded-4 border-0 shadow-sm" style="width: 24%; background-color: #fefefe;">
+                                <div class="d-flex align-items-center">
+
+                                    <div class="me-3">
+                                        <div class="rounded-3 d-flex justify-content-center align-items-center"
+                                            style="width: 60px; height: 60px; background-color: #f3e8fa;">
+                                            <i class="fa fa-sign-in" style="font-size: 1.5rem; color: purple;"></i>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex-grow-1 d-flex flex-column">
+                                        <span class="text-muted fw-semibold" style="font-size: 0.9rem; line-height: 1.1;">Recibido de cuentas externas</span>
+                                        <div class="d-flex align-items-center" style="line-height: 1;">
+                                            <span class="fw-bold mt-2" style="font-size: 1.9rem; color: 1b1f22;">
+                                                <t t-esc="record.total_transfer_external_received_month.value"/>
+                                            </span>
+
+                                            <div class="d-flex align-items-center ms-3" style="font-size: 1.1rem; font-weight: 600;">
+                                                <t t-if="record.difference_transfer_ext_received.raw_value > 0">
+                                                    <i class="fa fa-sort-asc" style="color: green; margin-right: 6px;"></i>
+                                                </t>
+                                                <t t-elif="record.difference_transfer_ext_received.raw_value == 0">
+                                                    <i class="fa fa-sort text-muted" style="margin-right: 6px;"></i>
+                                                </t>
+                                                <t t-else="">
+                                                    <i class="fa fa-sort-desc" style="color: red; margin-right: 6px;"></i>
+                                                </t>
+                                            </div>
+                                        </div>
+                                        <span style="font-size: 0.8rem;">
+                                            <t t-if="record.difference_transfer_ext_received.raw_value > 0">
+                                                <span style="color: green;"><field name="difference_transfer_ext_received"/> %</span>
+                                            </t>
+                                            <t t-elif="record.difference_transfer.raw_value == 0">
+                                                <span class="text-muted"><field name="difference_transfer_ext_received"/> %</span>
+                                            </t>
+                                            <t t-else="">
+                                                <span style="color: red;"><field name="difference_transfer_ext_received"/> %</span>
+                                            </t>
+                                            <span class="text-muted"> vs. mes pasado</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>                           
+
+                        </div>
+                        
                     </t>
                 </templates>
             </kanban>

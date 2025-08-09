@@ -20,6 +20,8 @@ class Dashboard(models.Model):
     total_income_month = fields.Monetary(currency_field="currency_id", compute="_compute_income_month_stats", store=True)
     total_expense_month = fields.Monetary(currency_field="currency_id", compute="_compute_expense_month_stats", store=True)
     total_transfer_month = fields.Monetary(currency_field="currency_id", compute="_compute_transfer_month_stats", store=True)
+    total_transfer_external_sent_month = fields.Monetary(currency_field="currency_id", compute="_compute_transfer_external_sent_month_stats", store=True)
+    total_transfer_external_received_month = fields.Monetary(currency_field="currency_id", compute="_compute_transfer_external_received_month_stats", store=True)
     
     # Categories (for small cards under total month income and total month expense)
     total_income_cat_month = fields.Json() # {category_name: category_value} All the categories and its values
@@ -52,6 +54,8 @@ class Dashboard(models.Model):
     total_income_last_month = fields.Monetary(currency_field="currency_id", compute="_compute_income_last_month_stats", store=True)
     total_expense_last_month = fields.Monetary(currency_field="currency_id", compute="_compute_expense_last_month_stats", store=True)
     total_transfer_last_month = fields.Monetary(currency_field="currency_id", compute="_compute_transfer_last_month_stats", store=True)
+    total_transfer_external_sent_last_month = fields.Monetary(currency_field="currency_id", compute="_compute_transfer_external_sent_last_month_stats", store=True)
+    total_transfer_external_received_last_month = fields.Monetary(currency_field="currency_id", compute="_compute_transfer_external_received_last_month_stats", store=True)
     
     # Categories (income and expense last month) Will be used only for calculate % variation
     category_income_last_top1_value = fields.Monetary(currency_field="currency_id", store=True)
@@ -62,6 +66,8 @@ class Dashboard(models.Model):
     difference_income = fields.Float(compute="_compute_income_variation")
     difference_save = fields.Float(compute="_compute_save_variation")
     difference_transfer = fields.Float(compute="_compute_transfer_variation")
+    difference_transfer_ext_sent = fields.Float(compute="_compute_transfer_ext_sent_variation")
+    difference_transfer_ext_received = fields.Float(compute="_compute_transfer_ext_received_variation")
 
     # Small cards TOP1
     difference_category_income_top1 = fields.Float(compute="_compute_category_income_top1_variation")
@@ -170,6 +176,36 @@ class Dashboard(models.Model):
             rec.total_transfer_name_value = sorted_data
 
             rec.total_transfer_month = sum(sorted_data.values()) if sorted_data else 0.00
+    
+    @api.depends("total_amount")
+    def _compute_transfer_external_sent_month_stats(self):
+        for rec in self:
+            user = rec.user_id
+            current_month_range = get_current_month_range()
+
+            transfer = self.env['cashmind.transfer_external'].search([
+                ('user_id', '=', user.id),
+                ("transfer_date", ">=", current_month_range[0]),
+                ("transfer_date", "<=", current_month_range[1])
+                ])
+            
+            # Recalculate cashmind.expense stats per category
+            rec.total_transfer_external_sent_month = sum(transfer.mapped("amount")) if transfer else 0.00
+
+    @api.depends("total_amount")
+    def _compute_transfer_external_received_month_stats(self):
+        for rec in self:
+            user = rec.user_id
+            current_month_range = get_current_month_range()
+
+            transfer = self.env['cashmind.transfer_external'].search([
+                ('external_user_id', '=', user.id),
+                ("transfer_date", ">=", current_month_range[0]),
+                ("transfer_date", "<=", current_month_range[1])
+                ])
+            
+            # Recalculate cashmind.expense stats per category
+            rec.total_transfer_external_received_month = sum(transfer.mapped("amount")) if transfer else 0.00
     # ------------- METHODS FOR RECALCULATING MAIN MONTH STATS AND TOTAL BALANCE (END) -------------
 
     # ------------- METHODS FOR RECALCULATING MAIN LAST MONTH STATS (START) -------------
@@ -263,7 +299,32 @@ class Dashboard(models.Model):
                 ("transfer_date", "<=", last_month_range[1])
                 ])
             rec.total_transfer_last_month = sum(transfer_last.mapped("amount")) if transfer_last else 0.00
-            
+
+    @api.depends("total_amount")
+    def _compute_transfer_external_sent_last_month_stats(self):
+        for rec in self:
+            user = rec.user_id
+            last_month_range = get_last_month_range()
+
+            transfer_last = self.env['cashmind.transfer_external'].search([
+                ('user_id', '=', user.id),
+                ("transfer_date", ">=", last_month_range[0]),
+                ("transfer_date", "<=", last_month_range[1])
+                ])
+            rec.total_transfer_external_sent_last_month = sum(transfer_last.mapped("amount")) if transfer_last else 0.00
+    
+    @api.depends("total_amount")
+    def _compute_transfer_external_received_last_month_stats(self):
+        for rec in self:
+            user = rec.user_id
+            last_month_range = get_last_month_range()
+
+            transfer_last = self.env['cashmind.transfer_external'].search([
+                ('external_user_id', '=', user.id),
+                ("transfer_date", ">=", last_month_range[0]),
+                ("transfer_date", "<=", last_month_range[1])
+                ])
+            rec.total_transfer_external_received_last_month = sum(transfer_last.mapped("amount")) if transfer_last else 0.00
     # ------------- METHODS FOR RECALCULATING MAIN LAST MONTH STATS (END) -------------
 
 
@@ -329,6 +390,44 @@ class Dashboard(models.Model):
                         rec.difference_transfer = float(rec.total_transfer_month / rec.total_transfer_last_month * 100)
                     elif difference < 0:
                         rec.difference_transfer = float(rec.total_transfer_month / rec.total_transfer_last_month * 100 - 100)
+
+    @api.depends("total_amount")
+    def _compute_transfer_ext_sent_variation(self):
+        for rec in self:
+            difference = rec.total_transfer_external_sent_month - rec.total_transfer_external_sent_last_month
+            if not difference:
+                rec.difference_transfer_ext_sent = float(0.00)
+            else:
+                if rec.total_transfer_external_sent_last_month == 0:
+                    rec.difference_transfer_ext_sent = float(100.00)
+                else:
+                    if difference > 0:
+                        rec.difference_transfer_ext_sent = float(
+                            rec.total_transfer_external_sent_month / rec.total_transfer_external_sent_last_month * 100
+                            )
+                    elif difference < 0:
+                        rec.difference_transfer_ext_sent = float(
+                            rec.total_transfer_external_sent_month / rec.total_transfer_external_sent_last_month * 100 - 100
+                            )
+
+    @api.depends("total_amount")
+    def _compute_transfer_ext_received_variation(self):
+        for rec in self:
+            difference = rec.total_transfer_external_received_month - rec.total_transfer_external_received_last_month
+            if not difference:
+                rec.difference_transfer_ext_received = float(0.00)
+            else:
+                if rec.total_transfer_external_received_last_month == 0:
+                    rec.difference_transfer_ext_received = float(100.00)
+                else:
+                    if difference > 0:
+                        rec.difference_transfer_ext_received = float(
+                            rec.total_transfer_external_received_month / rec.total_transfer_external_received_last_month * 100
+                            )
+                    elif difference < 0:
+                        rec.difference_transfer_ext_received = float(
+                            rec.total_transfer_external_received_month / rec.total_transfer_external_received_last_month * 100 - 100
+                            )
 
     @api.depends("category_income_top1_value", "category_income_last_top1_value")
     def _compute_category_income_top1_variation(self):
