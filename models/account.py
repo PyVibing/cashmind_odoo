@@ -181,12 +181,24 @@ class Account(models.Model):
                 raise ValidationError("Esta cuenta no puede eliminarse mientras existan movimientos asociados a esta. " \
                                     "Intente archivar la cuenta si no quiere eliminar los registros asociados. ")
 
+            # Avoid deleting the last account for an specific currency if dashboard is showing this currency
+            dashboard_record = self.env["cashmind.dashboard"].search([("user_id", "=", rec.user_id)])
+            currency_in_dashboard = dashboard_record.currency_id.id if dashboard_record else None
+
+            if currency_in_dashboard:
+                same_account_currency = self.env["cashmind.account"].search([("user_id", "=", rec.user_id), ("currency_id", "=", currency_in_dashboard)])
+                if len(same_account_currency) <= 1:
+                    raise ValidationError("Esta es su última cuenta en esta moneda. Antes de eliminarla, " \
+                                            "cambie la vista del dashboard a una moneda diferente.")
+                
+                different_account_currency = self.env["cashmind.account"].search([("user_id", "=", rec.user_id), ("currency_id", "!=", currency_in_dashboard)])
+                # ACTUALIZAR CURRENCY_ID DROPBOX eliminando el currency_id eliminado en esta accion
+            
         user_id = self.user_id.id
         account = super().unlink()
-
-        if not self.env.context.get("skip_dashboard"):
-            # Recalculate dashboard stats
-            dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
-            dashboards.recalculate_dashboard()
+        
+        # Recalculate dashboard stats
+        dashboards = self.env['cashmind.dashboard'].search([('user_id', '=', user_id)])
+        dashboards.recalculate_dashboard()
 
         return account

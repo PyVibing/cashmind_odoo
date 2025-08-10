@@ -1,5 +1,6 @@
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
 from datetime import date, datetime, timedelta
+import requests
 
 def notification(self, title, body, message_type, sticky=False):
     self.env["bus.bus"]._sendone(
@@ -77,43 +78,55 @@ def clean_input(text_to_clean: str, field: str):
     return clean_name.strip()
 
 def get_current_month_range(full_date=None):
-            if full_date is None:
-                full_date = datetime.now()
-            
-            current_month = full_date.month
-            current_year = full_date.year
+    if full_date is None:
+        full_date = datetime.now()
+    
+    current_month = full_date.month
+    current_year = full_date.year
 
-            if current_month < 12:
-                next_month = current_month + 1
-                next_month_year = current_year
-            else:
-                next_month = 1
-                next_month_year = current_year + 1
-            
-            first_day_next_month = date(next_month_year, next_month, 1)
-            last_day_current_month = first_day_next_month - timedelta(days=1)
-            first_day_current_month = date(current_year, current_month, 1)
-            current_month_range = [first_day_current_month, last_day_current_month]
+    if current_month < 12:
+        next_month = current_month + 1
+        next_month_year = current_year
+    else:
+        next_month = 1
+        next_month_year = current_year + 1
+    
+    first_day_next_month = date(next_month_year, next_month, 1)
+    last_day_current_month = first_day_next_month - timedelta(days=1)
+    first_day_current_month = date(current_year, current_month, 1)
+    current_month_range = [first_day_current_month, last_day_current_month]
 
-            return current_month_range
+    return current_month_range
 
 def get_last_month_range(full_date=None):
-            if full_date is None:
-                full_date = datetime.now()
-            
-            current_month = full_date.month
-            current_year = full_date.year
+    if full_date is None:
+        full_date = datetime.now()
+    
+    current_month = full_date.month
+    current_year = full_date.year
 
-            first_day_current_month = date(current_year, current_month, 1)
-            if current_month > 1:
-                last_month = current_month - 1
-                last_month_year = current_year
-            else:
-                last_month = 12
-                last_month_year = current_year - 1
-            
-            last_day_last_month = first_day_current_month - timedelta(days=1)
-            first_day_last_month = date(last_month_year, last_month, 1)
-            last_month_range = [first_day_last_month, last_day_last_month]
+    first_day_current_month = date(current_year, current_month, 1)
+    if current_month > 1:
+        last_month = current_month - 1
+        last_month_year = current_year
+    else:
+        last_month = 12
+        last_month_year = current_year - 1
+    
+    last_day_last_month = first_day_current_month - timedelta(days=1)
+    first_day_last_month = date(last_month_year, last_month, 1)
+    last_month_range = [first_day_last_month, last_day_last_month]
 
-            return last_month_range
+    return last_month_range
+
+def convert_currencies(from_currency, to_currency, amount):
+    URL = f"https://api.frankfurter.dev/v1/latest?base={from_currency}&symbols={to_currency}"
+     
+    try:
+         rate = requests.get(URL).json()["rates"][to_currency]
+    except requests.exceptions.RequestException as e:
+        raise UserError(f"Error al intentar convertir la cantidad a la moneda seleccionada. No se pudo obtener el tipo de cambio: {e}")
+    except KeyError:
+        raise UserError("Error al intentar convertir la cantidad a la moneda seleccionada. La respuesta de la API no contiene los datos esperados.")
+    
+    return amount * rate

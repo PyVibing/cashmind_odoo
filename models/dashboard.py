@@ -1,5 +1,10 @@
 from odoo import fields, models, api
-from ..utils import get_current_month_range, get_last_month_range
+from lxml import etree
+from ..utils import get_current_month_range, get_last_month_range, convert_currencies
+
+import logging
+_logger = logging.getLogger(__name__)
+
 
 class Dashboard(models.Model):
     _name = "cashmind.dashboard"
@@ -7,8 +12,8 @@ class Dashboard(models.Model):
     name = "MI DASHBOARD"
     user_id = fields.Many2one("res.users", string="Usuario", required=True, ondelete="cascade", unique=True,
                               default=lambda self: self.env.user)
-    currency_id = fields.Many2one("res.currency", default=125) # EUR for now
-    
+    currency_id = fields.Many2one("res.currency", required=True, default=125)
+        
     # CURRENT TOTALS 
     total_savinggoal = fields.Monetary(currency_field="currency_id")
     total_account = fields.Monetary(currency_field="currency_id")
@@ -74,7 +79,21 @@ class Dashboard(models.Model):
     difference_category_expense_top1 = fields.Float(compute="_compute_category_expense_top1_variation")
     difference_save_top1 = fields.Float(compute="_compute_save_top1_variation")
     difference_transfer_top1 = fields.Float(compute="_compute_transfer_top1_variation")
+
+    # ------------- METHODS FOR RECALCULATING AMOUNTS DEPENDING ON THE CURRENCY_ID (START) -------------
+    @api.model
+    def get_used_currencies(self, model):
+        query = f"""
+            SELECT DISTINCT currency_id
+            FROM {model}
+            WHERE currency_id IS NOT NULL
+            AND user_id = %s
+        """
+        self.env.cr.execute(query, (self.env.uid,))
+        currency_ids = [row[0] for row in self.env.cr.fetchall()]
+        return currency_ids if currency_ids else False
     
+        
     # ------------- METHODS FOR RECALCULATING MAIN MONTH STATS AND TOTAL BALANCE (START) -------------
     @api.depends("total_account", "total_savinggoal", "total_budget")
     def _compute_current_total_amount(self):
@@ -555,31 +574,52 @@ class Dashboard(models.Model):
     
 
     # ------------- METHOD FOR RECALCULATING DASHBOARD STATS -------------
-    # Recalculating will be manually called from other models (create(), write(), unlink())
+    # Recalculating will be manually called from other models (create(), write(), unlink()) OR when changing currency_id
     def recalculate_dashboard(self, external_user_id = None):
         for dashboard in self:
             user = dashboard.user_id if not external_user_id else external_user_id
-            # external_user = external_user_id if external_user_id else None
+            current_currency_name = self.env["res.currency"].search([("id", "=", dashboard.currency_id.id)])[0].name
+
+            def recalculate_for_model(model_underscore, model_dot):
+                # Recalculating for TOTAL_BUDGET
+                current_currency = {}
+                other_currencies = {}
+                used_currencies = dashboard.get_used_currencies(model=model_underscore)
+                if used_currencies:
+                    for currency_id in used_currencies:                    
+                        mod = self.env[model_dot].search([("user_id", "=", user.id), ("currency_id", "=", currency_id)])
+                        total = sum(mod.mapped("balance")) if mod else 0.00
+                        if currency_id != dashboard.currency_id.id:
+                            currency_name = self.env["res.currency"].search([("id", "=", currency_id)])[0].name
+                            other_currencies[currency_name] = total
+                        else:
+                            current_currency[current_currency_name] = total
+                
+                # Amount already in the current currency_id
+                pre_total = current_currency[current_currency_name] if current_currency else 0.00
+
+                # Let's convert to the current currency
+                pre_total_converted = 0.00
+                if other_currencies:                
+                    for currency, amount in other_currencies.items():
+                        total = convert_currencies(from_currency=currency, to_currency=current_currency_name, 
+                                                            amount=amount)
+                        pre_total_converted += total
+                
+                return pre_total + pre_total_converted
+
+            dashboard.total_budget = recalculate_for_model(model_underscore="cashmind_budget", model_dot="cashmind.budget")
+            dashboard.total_account = recalculate_for_model(model_underscore="cashmind_account", model_dot="cashmind.account")
+            dashboard.total_savinggoal = recalculate_for_model(model_underscore="cashmind_savinggoal", model_dot="cashmind.savinggoal")
+
+    def write(self, vals):
+        for rec in self:
+            if "currency_id" in vals and vals["currency_id"] != rec.currency_id.id:
+                dashboard = super().write(vals)
+                rec.recalculate_dashboard()
+                return dashboard
             
-            # External models
-            budget = self.env['cashmind.budget'].search([('user_id', '=', user.id)])
-            account = self.env['cashmind.account'].search([('user_id', '=', user.id)])
-            savinggoal = self.env['cashmind.savinggoal'].search([('user_id', '=', user.id)])
-
-            # Recalculate totals of all time
-            # This triggers the api.depends for the rest of the dashboard fields
-            dashboard.total_budget = sum(budget.mapped("balance")) if budget else 0.00
-            dashboard.total_account = sum(account.mapped("balance")) if account else 0.00
-            dashboard.total_savinggoal = sum(savinggoal.mapped("balance")) if savinggoal else 0.00            
-        
-            # # If it's called from the transfer_external model:
-            # # External models
-            # external_budget = self.env['cashmind.budget'].search([('user_id', '=', external_user.id)])
-            # external_account = self.env['cashmind.account'].search([('user_id', '=', external_user.id)])
-            # external_savinggoal = self.env['cashmind.savinggoal'].search([('user_id', '=', external_user.id)])
-
-            # # Recalculate totals of all time
-            # # This triggers the api.depends for the rest of the dashboard fields
-            # dashboard.total_budget = sum(external_budget.mapped("balance")) if budget else 0.00
-            # dashboard.total_account = sum(external_account.mapped("balance")) if account else 0.00
-            # dashboard.total_savinggoal = sum(external_savinggoal.mapped("balance")) if savinggoal else 0.00            
+            return super().write(vals)
+    
+  
+             
