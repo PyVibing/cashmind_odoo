@@ -8,6 +8,7 @@
         <field name="arch" type="xml">
             <kanban class="o_kanban_mobile" create="false">
                 <field name="currency_id"/>
+                <field name="user_id"/>
                 <field name="total_amount"/>
                 <field name="total_account"/>
                 <field name="total_savinggoal"/>
@@ -51,7 +52,7 @@
                             <!-- Texto de bienvenida -->
                             <div class="position-relative">
                                 <h1 class="fw-bold mb-2" style="font-size: 2.7rem; letter-spacing: 0.8px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #E0F2F1;">
-                                    Bienvenido a CashMind
+                                    <t t-esc="record.user_id.value"/>, bienvenido a CashMind
                                 </h1>
                                 <p class="mb-0" style="font-size: 1.15rem; font-weight: 500; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white;">
                                     Organiza tus finanzas de forma <span style="font-weight: 800; color: #EEF5DB;">inteligente</span> y sin complicaciones.
@@ -82,7 +83,7 @@
                                 options="{'no_create': True}"
                                 class="o_input"
                                 id="currency_id"
-                                domain="[('name','in',['EUR', 'USD', 'GBP'])]"
+                                domain="[('name','in',['EUR', 'AUD', 'BGN', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'GBP', 'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'ISK', 'JPY', 'KRW', 'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PLN', 'RON', 'SEK', 'SGD', 'THB', 'TRY', 'USD', 'ZAR'])]"
                                 style="color: #4a6ea9;"/>
                         </div>
                                                 

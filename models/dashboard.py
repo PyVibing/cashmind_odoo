@@ -29,8 +29,8 @@ class Dashboard(models.Model):
     total_transfer_external_received_month = fields.Monetary(currency_field="currency_id", compute="_compute_transfer_external_received_month_stats", store=True)
     
     # Categories (for small cards under total month income and total month expense)
-    total_income_cat_month = fields.Json() # {category_name: category_value} All the categories and its values
-    total_expense_cat_month = fields.Json() # {category_name: category_value} All the categories and its values
+    total_income_cat_month = fields.Json(compute="_compute_income_month_stats", store=True) # {category_name: category_value} All the categories and its values
+    total_expense_cat_month = fields.Json(compute="_compute_expense_month_stats", store=True) # {category_name: category_value} All the categories and its values
     category_income_top1 = fields.Json(compute="_compute_top1_income_cat", store=True) # {category_name: "name", category_value: value}
     category_expense_top1 = fields.Json(compute="_compute_top1_expense_cat", store=True) # {category_name: "name", category_value: value}
     # To show on dashboard (with monetary format, instead float from the json)
@@ -115,10 +115,17 @@ class Dashboard(models.Model):
             # Recalculate save in format name: value for current month
             data = {}
             for r in save:
+                save_currency = r.source_currency_id
                 if r.name in data:
-                    data[r.name] += r.amount
+                    if save_currency.id != rec.currency_id.id:
+                        data[r.name] += convert_currencies(from_currency=save_currency.name, to_currency=rec.currency_id.name, amount=r.amount)
+                    else:
+                        data[r.name] += r.amount
                 else:
-                    data[r.name] = r.amount
+                    if save_currency.id != rec.currency_id.id:
+                        data[r.name] = convert_currencies(from_currency=save_currency.name, to_currency=rec.currency_id.name, amount=r.amount)
+                    else:
+                        data[r.name] = r.amount
             sorted_data = dict(sorted(data.items(), key=lambda x: x[1], reverse=True)) if data else None
             rec.total_save_name_value = sorted_data
 
@@ -139,10 +146,20 @@ class Dashboard(models.Model):
             # Recalculate cashmind.income stats per category
             data = {}
             for r in income:
-                if r.category.name in data:
-                    data[r.category.name] += r.amount
-                else:
-                    data[r.category.name] = r.amount
+                income_currency = r.currency_id
+                if r.category.name != "AJUSTE DE SALDO":
+                    if r.category.name in data:
+                        if income_currency.id != rec.currency_id.id:
+                            data[r.category.name] += convert_currencies(from_currency=income_currency.name, 
+                                                                        to_currency=rec.currency_id.name, amount=r.amount)
+                        else:
+                            data[r.category.name] += r.amount
+                    else:
+                        if income_currency.id != rec.currency_id.id:
+                            data[r.category.name] = convert_currencies(from_currency=income_currency.name, 
+                                                                    to_currency=rec.currency_id.name, amount=r.amount)
+                        else:
+                            data[r.category.name] = r.amount
             sorted_data = dict(sorted(data.items(), key=lambda x: x[1], reverse=True)) if data else None 
             rec.total_income_cat_month = sorted_data
 
@@ -153,7 +170,7 @@ class Dashboard(models.Model):
         for rec in self:
             user = rec.user_id
             current_month_range = get_current_month_range()
-
+            
             expense = self.env['cashmind.expense'].search([
                 ('user_id', '=', user.id),
                 ("date", ">=", current_month_range[0]),
@@ -163,11 +180,21 @@ class Dashboard(models.Model):
             # Recalculate cashmind.expense stats per category
             data = {}
             for r in expense:
-                if r.category.name in data:
-                    data[r.category.name] += r.amount
-                else:
-                    data[r.category.name] = r.amount
-            sorted_data = dict(sorted(data.items(), key=lambda x: x[1], reverse=True)) if data else None
+                expense_currency = r.currency_id
+                if r.category.name != "AJUSTE DE SALDO":
+                    if r.category.name in data:
+                        if expense_currency.id != rec.currency_id.id:
+                            data[r.category.name] += convert_currencies(from_currency=expense_currency.name, 
+                                                                        to_currency=rec.currency_id.name, amount=r.amount)
+                        else:
+                            data[r.category.name] += r.amount
+                    else:
+                        if expense_currency.id != rec.currency_id.id:
+                            data[r.category.name] = convert_currencies(from_currency=expense_currency.name, 
+                                                                    to_currency=rec.currency_id.name, amount=r.amount)
+                        else:
+                            data[r.category.name] = r.amount
+            sorted_data = dict(sorted(data.items(), key=lambda x: x[1], reverse=True)) if data else None 
             rec.total_expense_cat_month = sorted_data
 
             rec.total_expense_month = sum(sorted_data.values()) if sorted_data else 0.00
@@ -176,7 +203,7 @@ class Dashboard(models.Model):
     def _compute_transfer_month_stats(self):
         for rec in self:
             user = rec.user_id
-            current_month_range = get_current_month_range()
+            current_month_range = get_current_month_range()            
 
             transfer = self.env['cashmind.transfer'].search([
                 ('user_id', '=', user.id),
@@ -184,13 +211,22 @@ class Dashboard(models.Model):
                 ("transfer_date", "<=", current_month_range[1])
                 ])
             
-            # Recalculate cashmind.expense stats per category
+            # Recalculate transfer in format name: value for current month
             data = {}
             for r in transfer:
+                transfer_currency = r.source_currency_id
                 if r.name in data:
-                    data[r.name] += r.amount
+                    if transfer_currency.id != rec.currency_id.id:
+                        data[r.name] += convert_currencies(from_currency=transfer_currency.name, to_currency=rec.currency_id.name, 
+                                                           amount=r.amount)
+                    else:
+                        data[r.name] += r.amount
                 else:
-                    data[r.name] = r.amount
+                    if transfer_currency.id != rec.currency_id.id:
+                        data[r.name] = convert_currencies(from_currency=transfer_currency.name, to_currency=rec.currency_id.name, 
+                                                          amount=r.amount)
+                    else:
+                        data[r.name] = r.amount
             sorted_data = dict(sorted(data.items(), key=lambda x: x[1], reverse=True)) if data else None
             rec.total_transfer_name_value = sorted_data
 
@@ -208,8 +244,18 @@ class Dashboard(models.Model):
                 ("transfer_date", "<=", current_month_range[1])
                 ])
             
-            # Recalculate cashmind.expense stats per category
-            rec.total_transfer_external_sent_month = sum(transfer.mapped("amount")) if transfer else 0.00
+            # Recalculate cashmind.transfer_external sent stats
+            pre_total_month_converted = 0.00
+            pre_total_month = 0.00
+            for r in transfer:
+                if r.source_currency_id.id == rec.currency_id.id:
+                    pre_total_month += r.amount
+                else:
+                    pre_total_month_converted += convert_currencies(from_currency=r.source_currency_id.name, 
+                                                                         to_currency=rec.currency_id.name, amount=r.amount)
+            
+            rec.total_transfer_external_sent_month = pre_total_month + pre_total_month_converted
+
 
     @api.depends("total_amount")
     def _compute_transfer_external_received_month_stats(self):
@@ -223,8 +269,17 @@ class Dashboard(models.Model):
                 ("transfer_date", "<=", current_month_range[1])
                 ])
             
-            # Recalculate cashmind.expense stats per category
-            rec.total_transfer_external_received_month = sum(transfer.mapped("amount")) if transfer else 0.00
+           # Recalculate cashmind.transfer_external received stats
+            pre_total_month_converted = 0.00
+            pre_total_month = 0.00
+            for r in transfer:
+                if r.source_currency_id.id == rec.currency_id.id:
+                    pre_total_month += r.amount
+                else:
+                    pre_total_month_converted += convert_currencies(from_currency=r.source_currency_id.name, 
+                                                                         to_currency=rec.currency_id.name, amount=r.amount)
+            
+            rec.total_transfer_external_received_month = pre_total_month + pre_total_month_converted
     # ------------- METHODS FOR RECALCULATING MAIN MONTH STATS AND TOTAL BALANCE (END) -------------
 
     # ------------- METHODS FOR RECALCULATING MAIN LAST MONTH STATS (START) -------------
@@ -239,7 +294,17 @@ class Dashboard(models.Model):
                 ("date", ">=", last_month_range[0]),
                 ("date", "<=", last_month_range[1])
                 ])
-            rec.total_save_last_month = sum(save_last.mapped("amount")) if save_last else 0.00
+            
+            pre_total_last_month_converted = 0.00
+            pre_total_last_month = 0.00
+            for r in save_last:
+                if r.source_currency_id.id == rec.currency_id.id:
+                    pre_total_last_month += r.amount
+                else:
+                    pre_total_last_month_converted += convert_currencies(from_currency=r.source_currency_id.name, 
+                                                                         to_currency=rec.currency_id.name, amount=r.amount)
+            
+            rec.total_save_last_month = pre_total_last_month + pre_total_last_month_converted
 
     @api.depends("total_amount")
     def _compute_income_last_month_stats(self):
@@ -252,7 +317,17 @@ class Dashboard(models.Model):
                 ("date", ">=", last_month_range[0]),
                 ("date", "<=", last_month_range[1])
                 ])
-            rec.total_income_last_month = sum(income_last.mapped("amount")) if income_last else 0.00
+            
+            pre_total_last_month_converted = 0.00
+            pre_total_last_month = 0.00
+            for r in income_last:
+                if r.currency_id.id == rec.currency_id.id:
+                    pre_total_last_month += r.amount
+                else:
+                    pre_total_last_month_converted += convert_currencies(from_currency=r.currency_id.name, 
+                                                                         to_currency=rec.currency_id.name, amount=r.amount)
+            
+            rec.total_income_last_month = pre_total_last_month + pre_total_last_month_converted
 
             # Recalculate last month category income value for the last top1 income category
             pre_total = float(0.00)
@@ -268,7 +343,11 @@ class Dashboard(models.Model):
 
                     if income_cat_top1_last:
                         for r in income_cat_top1_last:
-                            pre_total += r.amount
+                            if r.currency_id.id != rec.currency_id.id:
+                                pre_total += convert_currencies(from_currency=r.currency_id.name, to_currency=rec.currency_id.name, 
+                                                                amount=r.amount)
+                            else:
+                                pre_total += r.amount
                     # Break because we only want the first category in the ordered dict (reverse=True)
                     break
                 rec.category_income_last_top1_value = pre_total
@@ -284,7 +363,17 @@ class Dashboard(models.Model):
                 ("date", ">=", last_month_range[0]),
                 ("date", "<=", last_month_range[1])
                 ])
-            rec.total_expense_last_month = sum(expense_last.mapped("amount")) if expense_last else 0.00
+            
+            pre_total_last_month_converted = 0.00
+            pre_total_last_month = 0.00
+            for r in expense_last:
+                if r.currency_id.id == rec.currency_id.id:
+                    pre_total_last_month += r.amount
+                else:
+                    pre_total_last_month_converted += convert_currencies(from_currency=r.currency_id.name, 
+                                                                         to_currency=rec.currency_id.name, amount=r.amount)
+            
+            rec.total_expense_last_month = pre_total_last_month + pre_total_last_month_converted
 
             # Recalculate last month category expense value for the last top1 expense category
             pre_total = float(0.00)
@@ -300,7 +389,11 @@ class Dashboard(models.Model):
 
                     if expense_cat_top1_last:
                         for r in expense_cat_top1_last:
-                            pre_total += r.amount
+                            if r.currency_id.id != rec.currency_id.id:
+                                pre_total += convert_currencies(from_currency=r.currency_id.name, to_currency=rec.currency_id.name, 
+                                                                amount=r.amount)
+                            else:
+                                pre_total += r.amount
                     # Break because we only want the first category in the ordered dict (reverse=True)
                     break
                 rec.category_expense_last_top1_value = pre_total
@@ -317,7 +410,17 @@ class Dashboard(models.Model):
                 ("transfer_date", ">=", last_month_range[0]),
                 ("transfer_date", "<=", last_month_range[1])
                 ])
-            rec.total_transfer_last_month = sum(transfer_last.mapped("amount")) if transfer_last else 0.00
+            
+            pre_total_last_month_converted = 0.00
+            pre_total_last_month = 0.00
+            for r in transfer_last:
+                if r.source_currency_id.id == rec.currency_id.id:
+                    pre_total_last_month += r.amount
+                else:
+                    pre_total_last_month_converted += convert_currencies(from_currency=r.source_currency_id.name, 
+                                                                         to_currency=rec.currency_id.name, amount=r.amount)
+            
+            rec.total_transfer_last_month = pre_total_last_month + pre_total_last_month_converted
 
     @api.depends("total_amount")
     def _compute_transfer_external_sent_last_month_stats(self):
@@ -330,7 +433,18 @@ class Dashboard(models.Model):
                 ("transfer_date", ">=", last_month_range[0]),
                 ("transfer_date", "<=", last_month_range[1])
                 ])
-            rec.total_transfer_external_sent_last_month = sum(transfer_last.mapped("amount")) if transfer_last else 0.00
+            
+            # Recalculate cashmind.transfer_external sent stats
+            pre_total_month_converted = 0.00
+            pre_total_month = 0.00
+            for r in transfer_last:
+                if r.source_currency_id.id == rec.currency_id.id:
+                    pre_total_month += r.amount
+                else:
+                    pre_total_month_converted += convert_currencies(from_currency=r.source_currency_id.name, 
+                                                                         to_currency=rec.currency_id.name, amount=r.amount)
+            
+            rec.total_transfer_external_sent_last_month = pre_total_month + pre_total_month_converted
     
     @api.depends("total_amount")
     def _compute_transfer_external_received_last_month_stats(self):
@@ -343,7 +457,18 @@ class Dashboard(models.Model):
                 ("transfer_date", ">=", last_month_range[0]),
                 ("transfer_date", "<=", last_month_range[1])
                 ])
-            rec.total_transfer_external_received_last_month = sum(transfer_last.mapped("amount")) if transfer_last else 0.00
+            
+            # Recalculate cashmind.transfer_external received stats
+            pre_total_month_converted = 0.00
+            pre_total_month = 0.00
+            for r in transfer_last:
+                if r.source_currency_id.id == rec.currency_id.id:
+                    pre_total_month += r.amount
+                else:
+                    pre_total_month_converted += convert_currencies(from_currency=r.source_currency_id.name, 
+                                                                         to_currency=rec.currency_id.name, amount=r.amount)
+            
+            rec.total_transfer_external_received_last_month = pre_total_month + pre_total_month_converted
     # ------------- METHODS FOR RECALCULATING MAIN LAST MONTH STATS (END) -------------
 
 

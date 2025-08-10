@@ -1,9 +1,16 @@
 💸 CashMind – Gestión Financiera Personal (módulo para Odoo)
 🤝 Autor: Desarrollado con 💻 y café ☕ por Jeffry Hernández Gutierrez
-🆕 Última versión: v2.3
+🆕 Última versión: v2.4
 
 
 **CashMind** es un módulo para Odoo diseñado para ayudarte a llevar un control claro, simple y visual de tus finanzas personales. Administra tus ingresos, gastos y cuentas con comodidad, directamente desde tu entorno Odoo favorito.
+
+----------------------------------------------------------------------------------------------------
+🚀 Novedades  y cambios en la Versión v2.4
+
+1- ➕ Añadida la opción de seleccionar la moneda en la cual mostrar las estadísticas del dashboard
+2- ⬆️ Actualizado cálculo de estadísticas de ingresos y gastos: ahora no cuentan los ingresos o gastos con categoría AJUSTE DE SALDO
+
 
 ----------------------------------------------------------------------------------------------------
 🚀 Novedades  y cambios en la Versión v2.3

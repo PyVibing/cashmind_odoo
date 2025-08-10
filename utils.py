@@ -121,7 +121,7 @@ def get_last_month_range(full_date=None):
 
 def convert_currencies(from_currency, to_currency, amount):
     URL = f"https://api.frankfurter.dev/v1/latest?base={from_currency}&symbols={to_currency}"
-     
+    
     try:
          rate = requests.get(URL).json()["rates"][to_currency]
     except requests.exceptions.RequestException as e:
